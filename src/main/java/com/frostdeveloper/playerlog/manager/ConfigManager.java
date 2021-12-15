@@ -29,7 +29,7 @@ public class ConfigManager
 	{
 		if (!configFile.exists()) {
 			plugin.saveResource(configFile.getName(), true);
-			plugin.getLogger().log(Level.INFO, "Successfully created our config.yml");
+			plugin.log("index.create.success", configFile.getName());
 		}
 	}
 	
