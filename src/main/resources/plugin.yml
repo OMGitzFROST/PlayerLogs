@@ -1,0 +1,8 @@
+name: PlayerLog
+version: '${project.version}'
+main: com.frostdeveloper.playerlog.PlayerLog
+api-version: 1.17
+prefix: PL
+authors: [ OMGitzFROST ]
+description: A simple plugin used to log player activity
+website: https://www.frostdeveloper.com/project/playerlogs.html
