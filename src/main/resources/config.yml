@@ -1,0 +1,70 @@
+##########################################################
+# +----------------------------------------------------+ #
+# |                 CONFIGURATION FILE                 | #
+# +----------------------------------------------------+ #
+##########################################################
+
+# Config Versioning is becoming very common among popular server plugins, it is
+# an effective way to make sure developers can implement new features while making
+# also making it painless for server owners to start using. DON'T CHANGE THIS VALUE
+version: 1.0
+
+# Localization is a very fun way to make sure we allow our plugin to speak to you
+# in a language that is familiar to you. We've programmed this feature to automatically
+# detect your language based on your computer and will adjust accordingly.
+locale: en
+
+# Keeping your plugin up-to-date will make this plugin run much smoother. We will handle
+# updating this plugin and keeping it up to date, so you won't have to! You can disable this
+# feature by simply setting this to 'false'.
+auto-update: true
+
+# This setting is used to define whether this plugin should collect metrics. Metrics are
+# used to help our developer's better understand which feature and which settings most
+# server owners use and create new feature's server owners actually want.
+use-metrics: true
+
+# We are aware that some server owners do not like plugin prefixes to appear in chat.
+# Therefore, With this toggle, will determine whether you want our plugin's prefix to appear
+# inside player messages. You can set this to 'false' to send messages without the prefix.
+use-prefix: true
+
+# This setting is used to what format our plugin prefix should have. If you would like
+# to disable our prefix you can simply set this setting to '' or you can disable it
+# by setting the configuration above to 'use-prefix: false' <-- Recommended.
+prefix: '&7[&6PL&7]'
+
+# A setting used to define whether a custom file should be created for our messages
+# It will attempt to create a file based on the locale defined in this file.
+# If an invalid locale is defined, it will default to 'en'.
+custom-message: false
+
+# Sometimes, Developers make mistakes; and sometimes, server owners make mistakes.
+# This setting is designed to provide more console output to help us identify those
+# mistakes and fix the problem. Set this to 'true' when there are error messages in your console.
+debug-log: false
+
+###########################################################
+# +-----------------------------------------------------+ #
+# |                       MODULES                       | #
+# +-----------------------------------------------------+ #
+###########################################################
+
+# This setting is used to determine whether all activity should be separated based
+# on activity types. If enabled we will log separate files for each module, if disabled
+# we will log all activity into one convenient file.
+modularize: false
+
+# This section is used to determine which modules should be enabled, we understand that
+# server owner has different uses for this plugin and thus might not require each module.
+# To disable a module set it to 'false', to enable one set it to 'true'.
+modules:
+    join: true
+    quit: true
+    chat: true
+    death: true
+    cmd: true
+    block-break: true
+    block-place: true
+    world-change: true
+    
