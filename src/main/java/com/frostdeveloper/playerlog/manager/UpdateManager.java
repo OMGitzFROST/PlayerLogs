@@ -51,10 +51,13 @@ public class UpdateManager
 				return;
 			case AVAILABLE:
 				plugin.log(Level.WARNING, "update.result.available", REMOTE_VERSION);
+				return;
 			case ERROR:
 				plugin.debug(Level.WARNING, "update.result.error");
+				return;
 			case NOFILE:
 				plugin.debug(Level.WARNING, "update.result.nofile");
+				return;
 			case UNKNOWN:
 				plugin.debug(Level.WARNING, "update.result.unknown");
 		}
