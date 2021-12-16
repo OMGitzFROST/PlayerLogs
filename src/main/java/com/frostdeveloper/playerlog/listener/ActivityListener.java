@@ -1,6 +1,6 @@
 package com.frostdeveloper.playerlog.listener;
 
-import com.frostdeveloper.playerlog.Activity;
+import com.frostdeveloper.playerlog.util.Activity;
 import com.frostdeveloper.playerlog.PlayerLog;
 import com.frostdeveloper.playerlog.manager.ConfigManager;
 import com.frostdeveloper.playerlog.manager.LogManager;
