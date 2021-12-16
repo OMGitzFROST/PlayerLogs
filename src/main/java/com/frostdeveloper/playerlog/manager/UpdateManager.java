@@ -51,6 +51,12 @@ public class UpdateManager
 				return;
 			case AVAILABLE:
 				plugin.log(Level.WARNING, "update.result.available", REMOTE_VERSION);
+			case ERROR:
+				plugin.debug(Level.WARNING, "update.result.error");
+			case NOFILE:
+				plugin.debug(Level.WARNING, "update.result.nofile");
+			case UNKNOWN:
+				plugin.debug(Level.WARNING, "update.result.unknown");
 		}
 	}
 	
@@ -61,6 +67,7 @@ public class UpdateManager
 			connection.connect();
 			
 			if (!config.getBoolean(ConfigManager.Config.AUTO_UPDATE)) {
+				// UPDATER IS DISABLED AS DEFINED IN CONFIG
 				result = Result.DISABLED;
 				return;
 			}
@@ -81,6 +88,7 @@ public class UpdateManager
 				setReleaseInfo(reader);
 				
 				if (shouldUpdate(REMOTE_VERSION, plugin.getDescription().getVersion())) {
+					result = Result.AVAILABLE;
 					download(DOWNLOAD_URL, updateFolder);
 				}
 				else {
@@ -109,11 +117,17 @@ public class UpdateManager
 		JSONParser jsonParser = new JSONParser();
 		JSONObject releaseInfo = (JSONObject) jsonParser.parse(reader);
 		JSONArray jsonArray = (JSONArray) releaseInfo.get("assets");
-		JSONObject assetInfo = (JSONObject) jsonArray.get(0);
 		
 		REMOTE_VERSION = (String) releaseInfo.get("tag_name");
-		ASSET_NAME     = (String) assetInfo.get("name");
-		DOWNLOAD_URL   = new URL((String) assetInfo.get("browser_download_url"));
+		
+		if (!jsonArray.isEmpty()) {
+			JSONObject assetInfo = (JSONObject) jsonArray.get(0);
+			ASSET_NAME     = (String) assetInfo.get("name");
+			DOWNLOAD_URL   = new URL((String) assetInfo.get("browser_download_url"));
+		}
+		else {
+			result = Result.NOFILE;
+		}
 	}
 	
 	private void download(@NotNull URL url, @NotNull File location)
@@ -158,13 +172,16 @@ public class UpdateManager
 		}
 	}
 	
-	private enum Result
+	public Result getResult() { return result != null ? result : Result.UNKNOWN; }
+	
+	public enum Result
 	{
 		UNKNOWN,
 		DISABLED,
 		ERROR,
 		CURRENT,
 		AVAILABLE,
+		NOFILE,
 		INSTALLED,
 		EXISTS
 	}
