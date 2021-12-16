@@ -6,3 +6,13 @@ prefix: PL
 authors: [ OMGitzFROST ]
 description: A simple plugin used to log player activity
 website: https://www.frostdeveloper.com/project/playerlogs.html
+
+commands:
+    playerlog:
+        aliases: [pl, plog]
+        description: Base command for this plugin.
+        
+permissions:
+    playerlog.*:
+        default: op
+        description: Grants access to all features in this plugin
