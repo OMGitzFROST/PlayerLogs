@@ -166,11 +166,8 @@ public final class PlayerLog extends JavaPlugin
 	public @NotNull LocaleManager getLocaleManager()   { return new LocaleManager();         }
 	
 	@Contract (" -> new")
-	public @NotNull UpdateManager getUpdateManager()   { return new UpdateManager();         }
-	
-	
 	public @NotNull MetricsManager getMetricsManager() { return new MetricsManager();        }
 	
 	@Contract (" -> new")
-	public @NotNull CacheManager getCacheManager()     { return new CacheManager();          }
+	public @NotNull UpdateManager getUpdateManager()    { return new UpdateManager();        }
 }
