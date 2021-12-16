@@ -1,7 +1,7 @@
 package com.frostdeveloper.playerlog.manager;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.playerlog.Activity;
+import com.frostdeveloper.playerlog.util.Activity;
 import com.frostdeveloper.playerlog.PlayerLog;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
