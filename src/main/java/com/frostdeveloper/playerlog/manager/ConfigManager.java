@@ -31,6 +31,9 @@ public class ConfigManager
 			plugin.saveResource(configFile.getName(), true);
 			plugin.log("index.create.success", configFile.getName());
 		}
+		else {
+			plugin.log("index.search.success", configFile.getName());
+		}
 	}
 	
 	/**
