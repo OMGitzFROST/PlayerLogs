@@ -16,12 +16,18 @@ public class JoinListener implements Listener
 	private final UpdateManager updater = plugin.getUpdateManager();
 	private final FrostAPI api = plugin.getFrostApi();
 	
+	/**
+	 * A listener used to announce available updates if one is abailab.e
+	 *
+	 * @param event Triggered event
+	 * @since 1.1
+	 */
 	@EventHandler
 	public void onPlayerJoin(@NotNull PlayerJoinEvent event)
 	{
 		Player player = event.getPlayer();
 		
-		if (api.hasPermission(player, Permission.UPDATE)){
+		if (api.hasPermission(player, Permission.CMD_UPDATE, Permission.UPDATE_NOTIFY)){
 			
 			if (updater.getResult() == UpdateManager.Result.AVAILABLE) {
 				player.sendMessage("update.result.available");
