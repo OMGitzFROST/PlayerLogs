@@ -14,5 +14,18 @@ commands:
         
 permissions:
     playerlog.*:
-        default: op
         description: Grants access to all features in this plugin
+        default: op
+        children:
+            playerlog.update.notify: true
+            playerlog.command.update: true
+    playerlog.update.notify:
+        description: Enables update notification on server join.
+        default: false
+    playerlog.command.update:
+        description: Grants access to the '/playerlog update' command.
+        default: false
+    playerlog.command.reload:
+        description: Grants access to the '/playerlog reload' command.
+        default: false
+        
