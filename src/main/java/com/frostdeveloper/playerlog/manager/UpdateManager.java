@@ -3,6 +3,7 @@ package com.frostdeveloper.playerlog.manager;
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlog.PlayerLog;
 import com.google.common.base.Charsets;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -34,33 +35,31 @@ public class UpdateManager
 	public void runTask()
 	{
 		updateFolder = plugin.getServer().getUpdateFolderFile();
-		fetchLatestRelease();
+		String cachedTimer = cache.getCache("update-timer");
 		
-		switch(result) {
-			case INSTALLED:
-				plugin.log("update.result.updated", REMOTE_VERSION);
-				return;
-			case EXISTS:
-				plugin.log(Level.WARNING, "update.result.exists", REMOTE_VERSION);
-				return;
-			case CURRENT:
-				plugin.log("update.result.current");
-				return;
-			case DISABLED:
-				plugin.log(Level.WARNING, "update.result.disabled");
-				return;
-			case AVAILABLE:
-				plugin.log(Level.WARNING, "update.result.available", REMOTE_VERSION);
-				return;
-			case ERROR:
-				plugin.debug(Level.WARNING, "update.result.error");
-				return;
-			case NOFILE:
-				plugin.debug(Level.WARNING, "update.result.nofile");
-				return;
-			case UNKNOWN:
-				plugin.debug(Level.WARNING, "update.result.unknown");
-		}
+		new BukkitRunnable() {
+			int counter = cachedTimer != null ? Integer.parseInt(cachedTimer) : 0;
+			final int interval = api.toMinute(30);
+			
+			@Override
+			public void run() {
+				if (counter > interval) {
+					cache.deleteCache("update-timer");
+				}
+				
+				if (counter < interval) {
+					counter++;
+					cache.setCache("update-timer", counter);
+				}
+				else {
+					fetchLatestRelease();
+					printMessages();
+					
+					counter = 0;
+					cache.setCache("update-timer", counter);
+				}
+			}
+		}.runTaskTimer(plugin, 0, 20);
 	}
 	
 	private void fetchLatestRelease()
@@ -105,6 +104,51 @@ public class UpdateManager
 		catch (IOException ex) {
 			ReportManager.createReport(ex, true);
 		}
+	}
+	
+	private void printMessages()
+	{
+		new BukkitRunnable() {
+			
+			@Override
+			public void run() {
+				switch(getResult()) {
+					case DOWNLOADED:
+						//
+						plugin.log("update.result.downloaded", REMOTE_VERSION);
+						return;
+					case EXISTS:
+						// The update was downloaded and exists in the update folder
+						plugin.log(Level.WARNING, "update.result.exists", REMOTE_VERSION);
+						return;
+					case CURRENT:
+						// The latest version is currently installed
+						plugin.log("update.result.current");
+						return;
+					case DISABLED:
+						// The updater is disabled in the config file.
+						plugin.log(Level.WARNING, "update.result.disabled");
+						return;
+					case AVAILABLE:
+						// An update is available for download.
+						plugin.log(Level.WARNING, "update.result.available", REMOTE_VERSION);
+						return;
+					case ERROR:
+						// Either GitHub is down or the rate limit was reached.
+						plugin.debug(Level.WARNING, "update.result.error");
+						plugin.log("update.result.current");
+						return;
+					case NOFILE:
+						// The latest release does not contain a file.
+						plugin.debug(Level.WARNING, "update.result.nofile");
+						plugin.log("update.result.current");
+						return;
+					case UNKNOWN:
+						// The status of the updater is unknown
+						plugin.debug(Level.WARNING, "update.result.unknown");
+				}
+			}
+		}.runTaskLater(plugin, 0);
 	}
 	
 	private boolean shouldUpdate(@NotNull String removeVersion, String localVersion)
@@ -162,7 +206,7 @@ public class UpdateManager
 					}
 					
 					if (downloadFile.exists()) {
-						result = Result.INSTALLED;
+						result = Result.DOWNLOADED;
 					}
 				}
 				else {
@@ -185,7 +229,7 @@ public class UpdateManager
 		CURRENT,
 		AVAILABLE,
 		NOFILE,
-		INSTALLED,
+		DOWNLOADED,
 		EXISTS
 	}
 }
