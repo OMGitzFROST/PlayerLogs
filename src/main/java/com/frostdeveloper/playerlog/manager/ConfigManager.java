@@ -1,12 +1,12 @@
 package com.frostdeveloper.playerlog.manager;
 
+import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlog.PlayerLog;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.logging.Level;
 
 /**
  * A class used to handle our config tasks, this manager will create our file if one
@@ -17,7 +17,9 @@ import java.util.logging.Level;
  */
 public class ConfigManager
 {
-	private final PlayerLog plugin = PlayerLog.getInstance();
+	private static final PlayerLog plugin = PlayerLog.getInstance();
+	private static final FrostAPI api = plugin.getFrostApi();
+	
 	private final File configFile = new File(plugin.getDataFolder(), "config.yml");
 	
 	/**
@@ -81,7 +83,7 @@ public class ConfigManager
 		AUTO_UPDATE("auto-update", true),
 		USE_METRICS("use-metrics", true),
 		USE_PREFIX("use-prefix", true),
-		PREFIX("prefix", "&7[&6MC&7]"),
+		PREFIX("prefix", "&7[&6" + api.getPrefix() +"&7]"),
 		CUSTOM_MESSAGE("custom-message", false),
 		DEBUG_MODE("debug-log", false),
 		
