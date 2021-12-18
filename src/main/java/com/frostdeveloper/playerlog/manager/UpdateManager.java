@@ -4,7 +4,7 @@ import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlog.PlayerLog;
 import com.google.common.base.Charsets;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.jetbrains.annotations.NotNull;
+import org.bukkit.scheduler.BukkitTask;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -13,46 +13,87 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.logging.Level;
 
+/**
+ * A class used to manage our auto-updater
+ *
+ * @author OMGitzFROST
+ * @since 1.0
+ */
 public class UpdateManager
 {
+	// CLASS INSTANCES
 	private final PlayerLog plugin = PlayerLog.getInstance();
 	private final ConfigManager config = plugin.getConfigManager();
 	private final CacheManager cache = new CacheManager();
 	private final FrostAPI api = plugin.getFrostApi();
 	
-	@SuppressWarnings ("FieldCanBeLocal")
-	private final String REPO = "OMGitzFROST/PlayerLogs";
-	private File updateFolder;
+	// REQUIRED OBJECTS
+	private final File UPDATE_FOLDER;
+	private final String REPO;
 	
+	// RELEASE INFO
+	private final String RELEASE_URL;
 	private String REMOTE_VERSION;
+	private String DOWNLOAD_URL;
 	private String ASSET_NAME;
-	private URL DOWNLOAD_URL;
 	
+	// UPDATER OBJECTS
 	private static Result result;
+	private static BukkitTask task;
 	
+	/**
+	 * A constructor for our UpdateManager class, this constructor is used to instantiate
+	 * objects required for our updater to work properly.
+	 *
+	 * @since 1.1
+	 */
+	public UpdateManager()
+	{
+		REPO = api.format("OMGitzFROST/{0}", plugin.getDescription().getName());
+		RELEASE_URL = api.format("https://api.github.com/repos/{0}/releases/latest", getRepo());
+		UPDATE_FOLDER = plugin.getServer().getUpdateFolderFile();
+	}
+	
+	/**
+	 * A method used to run our updater task, this method uses a scheduler in order to periodically
+	 * check for new updates.
+	 *
+	 * @since 1.0
+	 */
 	public void runTask()
 	{
-		updateFolder = plugin.getServer().getUpdateFolderFile();
 		String cachedTimer = cache.getCache("update-timer");
 		
-		new BukkitRunnable() {
+		task  = new BukkitRunnable() {
 			int counter = cachedTimer != null ? Integer.parseInt(cachedTimer) : 0;
 			final int interval = api.toMinute(30);
 			
 			@Override
 			public void run() {
+				// STOP TASK INCAS THE DATA FOLDER IS DELETED
+				if (!plugin.getDataFolder().exists()) {
+					this.cancel();
+					return;
+				}
+				
+				// IF COUNTER IS GREATER THAN INTERVAL, DELETE CACHE.
 				if (counter > interval) {
 					cache.deleteCache("update-timer");
 				}
 				
+				// IF COUNTER IS LESS THAN INTERVAL, ADD TO COUNTER AND SET CACHE
 				if (counter < interval) {
 					counter++;
 					cache.setCache("update-timer", counter);
 				}
 				else {
-					fetchLatestRelease();
+					// IF ALL CHECKS PASS, ATTEMPT UPDATE AND RESET CACHE
+					
+					attemptDownload();
 					printMessages();
 					
 					counter = 0;
@@ -62,39 +103,97 @@ public class UpdateManager
 		}.runTaskTimer(plugin, 0, 20);
 	}
 	
-	private void fetchLatestRelease()
+	/**
+	 * A method used to verify and download an update if this updater determines an update is required.
+	 *
+	 * @since 1.1
+	 */
+	public void attemptDownload()
 	{
 		try {
-			final HttpURLConnection connection = (HttpURLConnection) new URL("https://api.github.com/repos/" + REPO + "/releases/latest").openConnection();
-			connection.connect();
-			
+			/* PRE-CHECKS */
 			if (!config.getBoolean(ConfigManager.Config.AUTO_UPDATE)) {
-				// UPDATER IS DISABLED AS DEFINED IN CONFIG
 				result = Result.DISABLED;
 				return;
 			}
 			
-			if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-				// COULDN'T ACCESS URL, BUILT LOCALLY?
+			fetchReleaseDetails();
+			
+			if (result == Result.UNKNOWN || result == Result.ERROR) {
+				return;
+			}
+			
+			if (ASSET_NAME == null || DOWNLOAD_URL == null) {
 				result = Result.UNKNOWN;
 				return;
 			}
 			
-			if (connection.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR || connection.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN) {
-				// GITHUB IS DOWN OR RATE LIMIT REACHED
+			if (!shouldUpdate()) {
+				result = Result.CURRENT;
+				return;
+			}
+			
+			File downloadFile = new File(UPDATE_FOLDER, ASSET_NAME);
+			
+			if (downloadFile.exists()) {
+				result = Result.AVAILABLE;
+				return;
+			}
+			
+			api.createParent(downloadFile);
+			BufferedInputStream in = new BufferedInputStream(new URL(DOWNLOAD_URL).openStream());
+			File updateFile = new File(UPDATE_FOLDER, ASSET_NAME);
+			
+			Files.copy(in, updateFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			
+			if (downloadFile.exists()) {
+				result = Result.DOWNLOADED;
+			}
+		}
+		catch (IOException ex) {
+			ReportManager.createReport(ex, true);
+		}
+	}
+	
+	/**
+	 * A method designed to only set the release info. It is not designed for anything else.
+	 *
+	 * @since 1.1
+	 */
+	private void fetchReleaseDetails()
+	{
+		try {
+			final HttpURLConnection connection = (HttpURLConnection) new URL(RELEASE_URL).openConnection();
+			connection.connect();
+			
+			// COULDN'T ACCESS URL, BUILT LOCALLY? OR RATE LIMIT REACHED
+			if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND || connection.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN) {
+				plugin.debug("update.fetch.unknown");
+				result = Result.UNKNOWN;
+				return;
+			}
+			
+			// GITHUB IS DOWN
+			if (connection.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR || connection.getResponseCode() == HttpURLConnection.HTTP_BAD_GATEWAY) {
+				plugin.debug("update.fetch.error");
 				result = Result.ERROR;
 				return;
 			}
 			
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), Charsets.UTF_8))) {
-				setReleaseInfo(reader);
+				JSONObject releaseInfo = (JSONObject) new JSONParser().parse(reader);
+				JSONArray jsonArray = (JSONArray) releaseInfo.get("assets");
 				
-				if (shouldUpdate(REMOTE_VERSION, plugin.getDescription().getVersion())) {
-					result = Result.AVAILABLE;
-					download(DOWNLOAD_URL, updateFolder);
+				REMOTE_VERSION = (String) releaseInfo.get("tag_name");
+				
+				if (!jsonArray.isEmpty()) {
+					JSONObject assetInfo = (JSONObject) jsonArray.get(0);
+					ASSET_NAME = (String) assetInfo.get("name");
+					DOWNLOAD_URL = (String) assetInfo.get("browser_download_url");
 				}
 				else {
-					result = Result.CURRENT;
+					plugin.debug("update.result.nofile");
+					result = Result.UNKNOWN;
 				}
 			}
 			catch (ParseException | NumberFormatException ex) {
@@ -106,130 +205,147 @@ public class UpdateManager
 		}
 	}
 	
-	private void printMessages()
+	/**
+	 * A method used to gather and print our messages in regards the result type.
+	 *
+	 * @since 1.1
+	 */
+	public void printMessages()
 	{
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() {
-				switch(getResult()) {
-					case DOWNLOADED:
-						//
-						plugin.log("update.result.downloaded", REMOTE_VERSION);
-						return;
-					case EXISTS:
-						// The update was downloaded and exists in the update folder
-						plugin.log(Level.WARNING, "update.result.exists", REMOTE_VERSION);
-						return;
-					case CURRENT:
-						// The latest version is currently installed
-						plugin.log("update.result.current");
-						return;
-					case DISABLED:
-						// The updater is disabled in the config file.
-						plugin.log(Level.WARNING, "update.result.disabled");
-						return;
-					case AVAILABLE:
-						// An update is available for download.
-						plugin.log(Level.WARNING, "update.result.available", REMOTE_VERSION);
-						return;
-					case ERROR:
-						// Either GitHub is down or the rate limit was reached.
-						plugin.debug(Level.WARNING, "update.result.error");
-						plugin.log("update.result.current");
-						return;
-					case NOFILE:
-						// The latest release does not contain a file.
-						plugin.debug(Level.WARNING, "update.result.nofile");
-						plugin.log("update.result.current");
-						return;
-					case UNKNOWN:
-						// The status of the updater is unknown
-						plugin.debug(Level.WARNING, "update.result.unknown");
-				}
-			}
-		}.runTaskLater(plugin, 0);
+		if (result == Result.DOWNLOADED) {// The latest version was downloaded.
+			plugin.log("update.result.downloaded", REMOTE_VERSION);
+			return;
+		}
+		else if (result == Result.CURRENT) {// The latest version is currently installed
+			plugin.log("update.result.current");
+			return;
+		}
+		else if (result == Result.DISABLED) {// The updater is disabled in the config file.
+			plugin.log(Level.WARNING, "update.result.disabled");
+			return;
+		}
+		else if (result == Result.AVAILABLE) {// An update is available for download.
+			plugin.log(Level.WARNING, "update.result.available", REMOTE_VERSION);
+			return;
+		}
+		else if (result == Result.ERROR) {// Either GitHub is down or the rate limit was reached.
+			plugin.debug(Level.WARNING, "update.result.error");
+			plugin.log("update.result.current");
+			return;
+		}
+		else if (result == Result.UNKNOWN) {// The status of the updater is unknown
+			plugin.debug(Level.WARNING, "update.result.unknown");
+		}
+		plugin.debug("update.result.info", result);
 	}
 	
-	private boolean shouldUpdate(@NotNull String removeVersion, String localVersion)
+	/**
+	 * A method used to determine whether an update is required. It compares the remote version to the local vesion
+	 * to return its requested outcome.
+	 *
+	 * @return Update status
+	 * @since 1.0
+	 */
+	private boolean shouldUpdate()
 	{
-		double remote = Double.parseDouble(removeVersion.replace("v", ""));
-		double local  = Double.parseDouble(localVersion);
+		double remote = Double.parseDouble(REMOTE_VERSION.replace("v", ""));
+		double local  = Double.parseDouble(plugin.getDescription().getVersion());
 		
 		return remote > local;
 	}
 	
-	private void setReleaseInfo(Reader reader) throws IOException, ParseException
+	/**
+	 * A method used to reload our updater, this method cancels all existing schedulers and reloads our updater.
+	 *
+	 * @since 1.1
+	 */
+	public void reload()
 	{
-		JSONParser jsonParser = new JSONParser();
-		JSONObject releaseInfo = (JSONObject) jsonParser.parse(reader);
-		JSONArray jsonArray = (JSONArray) releaseInfo.get("assets");
-		
-		REMOTE_VERSION = (String) releaseInfo.get("tag_name");
-		
-		if (!jsonArray.isEmpty()) {
-			JSONObject assetInfo = (JSONObject) jsonArray.get(0);
-			ASSET_NAME     = (String) assetInfo.get("name");
-			DOWNLOAD_URL   = new URL((String) assetInfo.get("browser_download_url"));
-		}
-		else {
-			result = Result.NOFILE;
-		}
+		task.cancel();
+		runTask();
+		plugin.log("update.task.reloaded");
 	}
 	
-	private void download(@NotNull URL url, @NotNull File location)
-	{
-		try {
-			if (ASSET_NAME != null) {
-				File downloadFile = new File(location, ASSET_NAME);
-				
-				if (!downloadFile.exists()) {
-					api.createParent(downloadFile);
-					BufferedInputStream in;
-					FileOutputStream fout;
-					
-					final int fileLength = url.openConnection().getContentLength();
-					in = new BufferedInputStream(url.openStream());
-					fout = new FileOutputStream(new File(updateFolder, ASSET_NAME));
-					
-					final byte[] data = new byte[1024];
-					int count;
-					
-					long downloaded = 0;
-					while ((count = in.read(data, 0, 1024)) != -1) {
-						downloaded += count;
-						fout.write(data, 0, count);
-						final int percent = (int) ((downloaded * 100) / fileLength);
-						if ((percent % 10) == 0) {
-							plugin.log("Downloading update: " + percent + "% of " + fileLength + " bytes.");
-						}
-					}
-					
-					if (downloadFile.exists()) {
-						result = Result.DOWNLOADED;
-					}
-				}
-				else {
-					result = Result.EXISTS;
-				}
-			}
-		}
-		catch (IOException ex) {
-			throw new IllegalArgumentException("Failed to download update", ex);
-		}
-	}
+	/**
+	 * A method used to return the outcome updater result.
+	 *
+	 * @return Update result.
+	 * @since 1.1
+	 */
+	public Result getResult() { return result; }
 	
-	public Result getResult() { return result != null ? result : Result.UNKNOWN; }
+	/**
+	 * A method  used to return the project repository identifier
+	 *
+	 * @return Repository identifier
+	 * @since 1.1
+	 */
+	public String getRepo() { return REPO; }
 	
+	/**
+	 * An enum used to define the available result types for our auto updater.
+	 *
+	 * @since 1.0
+	 */
 	public enum Result
 	{
+		/**
+		 * This enum value is called when the status of the download is unknown, in other words, a valid url was
+		 * provided, but we could not access information about the latest build it will return this result.,
+		 * Possible outcomes include
+		 * <br><br/>
+		 * <p>
+		 * 1. The jar file is built locally <br> 2. GitHub's rate limit was reached <br> 3. No asset file was
+		 * found
+		 *
+		 * <br><br/>
+		 *
+		 * @since 1.0
+		 */
 		UNKNOWN,
-		DISABLED,
+		/**
+		 * This enum value is called during these circumstances.
+		 * <br><br/>
+		 * 1. GitHub is down <br> 2. A Broken url was provided
+		 * <br><br/>
+		 *
+		 * @since 1.0
+		 */
 		ERROR,
-		CURRENT,
+		/**
+		 * This enum value is called when our plugin determines that a newer version of our plugin is available for
+		 * download, but is prevented from downloading the update. Additionally, this result is returned if the
+		 * update is located in the update folder
+		 *
+		 * <br><br/>
+		 *
+		 * @since 1.0
+		 */
 		AVAILABLE,
-		NOFILE,
+		/**
+		 * This enum value is called when our plugin determines that the latest version is currently installed,
+		 * thus no changes have taken place.
+		 *
+		 * <br><br/>
+		 *
+		 * @since 1.0
+		 */
+		CURRENT,
+		/**
+		 * This enum value is called when our plugin successfully downloads the latest version.
+		 *
+		 * <br><br/>
+		 *
+		 * @since 1.0
+		 */
 		DOWNLOADED,
-		EXISTS
+		/**
+		 * This enum value is called when our auto-updater is disabled inside our configuration file.
+		 *
+		 * <br><br/>
+		 *
+		 * @since 1.0
+		 */
+		DISABLED
 	}
 }
