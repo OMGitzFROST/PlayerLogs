@@ -39,7 +39,7 @@ public class LogManager
 			
 			FileWriter fw = new FileWriter(getFile(type, player), true);
 			PrintWriter pw = new PrintWriter(fw);
-			pw.println("[" + api.getTimeNow() + "]: " + api.format(msg));
+			pw.println("[" + api.getTimeNow() + "]: " + api.stripColor(msg));
 			pw.close();
 		}
 		catch (IOException ex) {
