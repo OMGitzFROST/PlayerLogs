@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.frostdeveloper</groupId>
-    <artifactId>PlayerLog</artifactId>
-    <version>1.0</version>
+    <artifactId>PlayerLogs</artifactId>
+    <version>1.1</version>
     <packaging>jar</packaging>
 
     <name>PlayerLog</name>

@@ -1,7 +1,7 @@
 package com.frostdeveloper.playerlog.manager;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.playerlog.Activity;
+import com.frostdeveloper.playerlog.util.Activity;
 import com.frostdeveloper.playerlog.PlayerLog;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,7 @@ public class LogManager
 			
 			FileWriter fw = new FileWriter(getFile(type, player), true);
 			PrintWriter pw = new PrintWriter(fw);
-			pw.println("[" + api.getTimeNow() + "]: " + api.format(msg));
+			pw.println("[" + api.getTimeNow() + "]: " + api.stripColor(msg));
 			pw.close();
 		}
 		catch (IOException ex) {

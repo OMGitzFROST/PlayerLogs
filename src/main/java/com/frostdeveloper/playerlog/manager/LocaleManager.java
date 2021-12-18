@@ -52,6 +52,9 @@ public class LocaleManager
 				}
 			}
 		}
+		else {
+			plugin.log("index.search.success", messageFile.getName());
+		}
 	}
 	
 	/*

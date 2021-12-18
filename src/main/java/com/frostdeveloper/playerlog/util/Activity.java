@@ -1,4 +1,4 @@
-package com.frostdeveloper.playerlog;
+package com.frostdeveloper.playerlog.util;
 
 /**
  * An enum used to define our activity types
