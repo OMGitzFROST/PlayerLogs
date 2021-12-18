@@ -20,7 +20,7 @@ public class ConfigManager
 	private static final PlayerLog plugin = PlayerLog.getInstance();
 	private static final FrostAPI api = plugin.getFrostApi();
 	
-	private final File configFile = new File(plugin.getDataFolder(), "config.yml");
+	private final File configFile = api.toFile("config.yml");
 	
 	/**
 	 * A method used to create our configuration file if one does not exist.

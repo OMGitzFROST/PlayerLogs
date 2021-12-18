@@ -1,5 +1,6 @@
 package com.frostdeveloper.playerlog.manager;
 
+import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlog.PlayerLog;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -10,7 +11,9 @@ import java.io.IOException;
 public class CacheManager
 {
 	private final PlayerLog plugin = PlayerLog.getInstance();
-	private final File cacheFile = new File(plugin.getDataFolder(), ".cache.yml");
+	private final FrostAPI api = plugin.getFrostApi();
+	
+	private final File cacheFile = api.toFile( ".cache.yml");
 	
 	public void setCache(String path, Object value)
 	{

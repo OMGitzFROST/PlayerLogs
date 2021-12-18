@@ -19,9 +19,11 @@ import java.io.PrintWriter;
  */
 public class ActivityManager
 {
+	// CLASS INSTANCES
 	private final PlayerLog plugin = PlayerLog.getInstance();
 	private final FrostAPI api = plugin.getFrostApi();
 	
+	// CLASS SPECIFIC OBJECT
 	private final File rootDir = new File(plugin.getDataFolder(), "player-logs");
 	
 	/**
