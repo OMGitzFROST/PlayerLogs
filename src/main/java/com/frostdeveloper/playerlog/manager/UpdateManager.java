@@ -15,7 +15,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.logging.Level;
 
 /**
  * A class used to manage our auto-updater
@@ -28,6 +27,7 @@ public class UpdateManager
 	// CLASS INSTANCES
 	private final PlayerLog plugin = PlayerLog.getInstance();
 	private final ConfigManager config = plugin.getConfigManager();
+	private final LocaleManager locale = plugin.getLocaleManager();
 	private final CacheManager cache = new CacheManager();
 	private final FrostAPI api = plugin.getFrostApi();
 	
@@ -94,7 +94,7 @@ public class UpdateManager
 					// IF ALL CHECKS PASS, ATTEMPT UPDATE AND RESET CACHE
 					
 					attemptDownload();
-					printMessages();
+					plugin.log(getMessage());
 					
 					counter = 0;
 					cache.setCache("update-timer", counter);
@@ -210,33 +210,27 @@ public class UpdateManager
 	 *
 	 * @since 1.1
 	 */
-	public void printMessages()
+	public String getMessage()
 	{
 		if (result == Result.DOWNLOADED) {// The latest version was downloaded.
-			plugin.log("update.result.downloaded", REMOTE_VERSION);
-			return;
+			return api.format(locale.getMessage("update.result.downloaded"), REMOTE_VERSION);
 		}
 		else if (result == Result.CURRENT) {// The latest version is currently installed
-			plugin.log("update.result.current");
-			return;
+			return api.format(locale.getMessage("update.result.current"));
 		}
 		else if (result == Result.DISABLED) {// The updater is disabled in the config file.
-			plugin.log(Level.WARNING, "update.result.disabled");
-			return;
+			return api.format(locale.getMessage("update.result.disabled"));
 		}
 		else if (result == Result.AVAILABLE) {// An update is available for download.
-			plugin.log(Level.WARNING, "update.result.available", REMOTE_VERSION);
-			return;
+			return api.format(locale.getMessage("update.result.available"), REMOTE_VERSION);
 		}
 		else if (result == Result.ERROR) {// Either GitHub is down or the rate limit was reached.
-			plugin.debug(Level.WARNING, "update.result.error");
-			plugin.log("update.result.current");
-			return;
+			return api.format(locale.getMessage("update.result.error"));
 		}
 		else if (result == Result.UNKNOWN) {// The status of the updater is unknown
-			plugin.debug(Level.WARNING, "update.result.unknown");
+			return api.format(locale.getMessage("update.result.unknown"));
 		}
-		plugin.debug("update.result.info", result);
+		return "";
 	}
 	
 	/**
@@ -263,7 +257,6 @@ public class UpdateManager
 	{
 		task.cancel();
 		runTask();
-		plugin.log("update.task.reloaded");
 	}
 	
 	/**
@@ -281,6 +274,8 @@ public class UpdateManager
 	 * @since 1.1
 	 */
 	public String getRepo() { return REPO; }
+	
+	public BukkitTask getTask() { return task; }
 	
 	/**
 	 * An enum used to define the available result types for our auto updater.
