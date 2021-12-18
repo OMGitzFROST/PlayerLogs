@@ -17,10 +17,12 @@ import java.io.PrintWriter;
  * @author OMGitzFROST
  * @since 1.0
  */
-public class LogManager
+public class ActivityManager
 {
 	private final PlayerLog plugin = PlayerLog.getInstance();
 	private final FrostAPI api = plugin.getFrostApi();
+	
+	private final File rootDir = new File(plugin.getDataFolder(), "player-logs");
 	
 	/**
 	 * A method used to log a player's activity to the corresponding file.
@@ -56,9 +58,8 @@ public class LogManager
 	 * @return Activity file
 	 * @since 1.0
 	 */
-	public File getFile(@NotNull Activity type , @NotNull Player player)
+	public File getFile(@NotNull Activity type, @NotNull Player player)
 	{
-		File rootDir = new File(plugin.getDataFolder(), "player-logs");
 		File moduleDirectory = new File(rootDir, player.getUniqueId().toString());
 		
 		switch (type) {
