@@ -10,11 +10,26 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
+/**
+ * A class used to house redundant methods used across multiple projects, this plugin is designed to make development
+ * easier for all current and future projects.
+ *
+ * @author OMGitzFROST
+ * @version 1.0
+ */
 public final class FrostAPI
 {
+	// CLASS SPECIFIC OBJECTS
 	private final Plugin plugin;
 	
+	/**
+	 * A constructor for the FrostAPI class
+	 *
+	 * @param plugin Instance of the main plugin
+	 * @since 1.0
+	 */
 	public FrostAPI(Plugin plugin) { this.plugin = plugin; }
 	
 	/**
@@ -126,6 +141,15 @@ public final class FrostAPI
 		return ChatColor.translateAlternateColorCodes('&', MessageFormat.format(msg, param));
 	}
 	
+	/**
+	 * A method used to format a string and translate Bukkit color codes
+	 *
+	 * @param stripColor Condition to strip color codes
+	 * @param msg Target message
+	 * @param param Optional params
+	 * @return Formatted message
+	 * @since 1.1
+	 */
 	public @NotNull String format(boolean stripColor, String msg, Object... param)
 	{
 		if (stripColor) {
@@ -134,6 +158,13 @@ public final class FrostAPI
 		return format(msg, param);
 	}
 	
+	/**
+	 * A method used to strip color codes from an input, it will remove any {@link ChatColor} present.
+	 *
+	 * @param input Target input
+	 * @return Colorless output.
+	 * @since 1.1
+	 */
 	public @NotNull String stripColor(@NotNull String input)
 	{
 		input = input.replaceAll("§", "&");
@@ -179,23 +210,69 @@ public final class FrostAPI
 		return date.format(System.currentTimeMillis());
 	}
 	
+	/**
+	 * A method used in a runnable. It's used to return the amount of time required to complete the delay in seconds
+	 *
+	 * @param amount Amount of seconds.
+	 * @return Delay in seconds
+	 * @since 1.1
+	 */
 	public int toSecond(int amount) { return amount; }
 	
+	/**
+	 * A method used in a runnable. It's used to return the amount of time required to complete the delay in minutes
+	 *
+	 * @param amount Amount of minutes.
+	 * @return Delay in minutes
+	 * @since 1.1
+	 */
 	public int toMinute(int amount) { return toSecond(60) * amount; }
 	
+	/**
+	 * A method used in a runnable. It's used to return the amount of time required to complete the delay in hours
+	 *
+	 * @param amount Amount of hours.
+	 * @return Delay in hours
+	 * @since 1.1
+	 */
 	public int toHour(int amount)   { return toMinute(60) * amount; }
 	
+	/**
+	 * A method used in a runnable. It's used to return the amount of time required to complete the delay in days
+	 *
+	 * @param amount Amount of days.
+	 * @return Delay in days
+	 * @since 1.1
+	 */
 	public int toDay(int amount)    { return toHour(24) * amount;   }
 	
 	/*
 	 * PLAYER METHODS
 	 */
 	
+	/**
+	 * A method used tp determine whether a command sender is permitted any of the listed
+	 * permissions, if any is permitted, it will return true.
+	 *
+	 * @param sender Command sender
+	 * @param perm Target permission
+	 * @return Permission status
+	 * @since 1.1
+	 */
 	public boolean hasPermission(@NotNull CommandSender sender, @NotNull Permission perm)
 	{
 		return sender.hasPermission(Permission.ALL.getPerm()) || sender.hasPermission(perm.getPerm());
 	}
 	
+	/**
+	 * A method used tp determine whether a command sender is permitted any of the listed
+	 * permissions, if any is permitted, it will return true.
+	 *
+	 * @param sender Command sender
+	 * @param perms List of perms
+	 * @return Permission status
+	 * @since 1.1
+	 */
 	public boolean hasPermission(CommandSender sender, Permission @NotNull ... perms)
 	{
 		boolean isPermitted = false;
@@ -212,14 +289,57 @@ public final class FrostAPI
 	 * PLUGIN DESCRIPTION
 	 */
 	
+	/**
+	 * A method used to return a plugin's name located inside the plugin.yml file
+	 *
+	 * @return Plugin name
+	 * @since 1.1
+	 */
 	public @NotNull String getName() { return plugin.getDescription().getName(); }
 	
+	/**
+	 * A method used to return a plugin's full name created using the plugin.yml file
+	 *
+	 * @return Plugin full name
+	 * @since 1.1
+	 */
 	public @NotNull String getFullName() { return plugin.getDescription().getFullName(); }
 	
+	/**
+	 * A method used to return a plugin's version located inside the plugin.yml file
+	 *
+	 * @return Plugin version
+	 * @since 1.1
+	 */
 	public @NotNull String getVersion() { return plugin.getDescription().getVersion(); }
 	
+	/**
+	 * A method used to return a plugin's prefix located inside the plugin.yml file
+	 *
+	 * @return Plugin prefix
+	 * @since 1.1
+	 */
 	public String getPrefix()
 	{
 		return plugin.getDescription().getPrefix() != null ? plugin.getDescription().getPrefix() : "";
+	}
+	
+	/*
+	 * UTILITY METHODS
+	 */
+	
+	/**
+	 * A method used to add a string to a list if a condition is met.
+	 *
+	 * @param list Target list
+	 * @param value Target value
+	 * @param condition Required condition
+	 * @since 1.1
+	 */
+	public void addToList(List<String> list, String value, boolean condition)
+	{
+		if (condition) {
+			list.add(value);
+		}
 	}
 }
