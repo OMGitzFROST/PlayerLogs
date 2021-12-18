@@ -11,6 +11,7 @@ commands:
     playerlog:
         aliases: [pl, plog, plogs, playerlogs]
         description: Base command for this plugin.
+        usage: /{0} [reload | update | purge]
         
 permissions:
     playerlog.*:
