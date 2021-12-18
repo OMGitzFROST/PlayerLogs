@@ -3,6 +3,7 @@ package com.frostdeveloper.playerlog.command;
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlog.PlayerLog;
 import com.frostdeveloper.playerlog.manager.ConfigManager;
+import com.frostdeveloper.playerlog.manager.ActivityManager;
 import com.frostdeveloper.playerlog.manager.UpdateManager;
 import com.frostdeveloper.playerlog.util.Permission;
 import org.bukkit.command.Command;
@@ -16,6 +17,7 @@ public class BaseCommand implements CommandExecutor
 	private final PlayerLog plugin = PlayerLog.getInstance();
 	private final UpdateManager updater = plugin.getUpdateManager();
 	private final ConfigManager config = plugin.getConfigManager();
+	private final ActivityManager activity = plugin.getLogManager();
 	private final FrostAPI api = plugin.getFrostApi();
 	
 	/**
@@ -35,21 +37,25 @@ public class BaseCommand implements CommandExecutor
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args)
 	{
 		if (label.equalsIgnoreCase("playerlog") || command.getAliases().contains(label)) {
-			
-			if (args.length == 1) {
-				switch (args[0]) {
-					case "update":
-						executeUpdate(sender);
-						break;
-					case "reload":
-						executeReload(sender);
-						break;
-					default:
-						sendMessage(sender, "plugin.command.invalid", getLabelUsage(command, label));
+			if (api.hasPermission(sender, Permission.CMD_RELOAD, Permission.CMD_UPDATE)) {
+				if (args.length == 1) {
+					switch (args[0]) {
+						case "update":
+							executeUpdate(sender);
+							break;
+						case "reload":
+							executeReload(sender);
+							break;
+						default:
+							sendMessage(sender, "plugin.command.invalid", getLabelUsage(command, label));
+					}
+				}
+				else {
+					sendMessage(sender, "plugin.command.invalid", getLabelUsage(command, label));
 				}
 			}
 			else {
-				sendMessage(sender, "plugin.command.invalid", getLabelUsage(command, label));
+				sendMessage(sender, "plugin.command.denied");
 			}
 		}
 		return true;
@@ -67,6 +73,9 @@ public class BaseCommand implements CommandExecutor
 			}
 			plugin.log(updater.getMessage());
 		}
+		else {
+			sendMessage(sender, "plugin.command.denied");
+		}
 	}
 	
 	private void executeReload(CommandSender sender)
@@ -79,7 +88,14 @@ public class BaseCommand implements CommandExecutor
 			}
 			plugin.log("plugin.reload.success");
 		}
+		else {
+			sendMessage(sender, "plugin.command.denied");
+		}
 	}
+	
+	/*
+	 * MISC METHODS
+	 */
 	
 	private @NotNull String getLabelUsage(@NotNull Command cmd, String label)
 	{
