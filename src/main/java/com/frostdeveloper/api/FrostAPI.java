@@ -1,6 +1,8 @@
 package com.frostdeveloper.api;
 
+import com.frostdeveloper.playerlog.util.Permission;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -124,6 +126,42 @@ public final class FrostAPI
 		return ChatColor.translateAlternateColorCodes('&', MessageFormat.format(msg, param));
 	}
 	
+	public @NotNull String format(boolean stripColor, String msg, Object... param)
+	{
+		if (stripColor) {
+			msg = stripColor(msg);
+		}
+		return format(msg, param);
+	}
+	
+	public @NotNull String stripColor(@NotNull String input)
+	{
+		input = input.replaceAll("§", "&");
+		
+		if (input.contains("&")) {
+			input = input.replace("&a", "");
+			input = input.replace("&b", "");
+			input = input.replace("&c", "");
+			input = input.replace("&d", "");
+			input = input.replace("&e", "");
+			input = input.replace("&f", "");
+			
+			input = input.replace("&0", "");
+			input = input.replace("&1", "");
+			input = input.replace("&2", "");
+			input = input.replace("&3", "");
+			input = input.replace("&4", "");
+			input = input.replace("&5", "");
+			input = input.replace("&6", "");
+			input = input.replace("&7", "");
+			input = input.replace("&8", "");
+			input = input.replace("&9", "");
+			
+			input = input.replace("&r", "");
+		}
+		return input;
+	}
+	
 	/*
 	 * TIME
 	 */
@@ -148,4 +186,40 @@ public final class FrostAPI
 	public int toHour(int amount)   { return toMinute(60) * amount; }
 	
 	public int toDay(int amount)    { return toHour(24) * amount;   }
+	
+	/*
+	 * PLAYER METHODS
+	 */
+	
+	public boolean hasPermission(@NotNull CommandSender sender, @NotNull Permission perm)
+	{
+		return sender.hasPermission(Permission.ALL.getPerm()) || sender.hasPermission(perm.getPerm());
+	}
+	
+	public boolean hasPermission(CommandSender sender, Permission @NotNull ... perms)
+	{
+		boolean isPermitted = false;
+		
+		for (Permission perm : perms) {
+			if (hasPermission(sender, perm)) {
+				isPermitted = true;
+			}
+		}
+		return isPermitted;
+	}
+	
+	/*
+	 * PLUGIN DESCRIPTION
+	 */
+	
+	public @NotNull String getName() { return plugin.getDescription().getName(); }
+	
+	public @NotNull String getFullName() { return plugin.getDescription().getFullName(); }
+	
+	public @NotNull String getVersion() { return plugin.getDescription().getVersion(); }
+	
+	public String getPrefix()
+	{
+		return plugin.getDescription().getPrefix() != null ? plugin.getDescription().getPrefix() : "";
+	}
 }
