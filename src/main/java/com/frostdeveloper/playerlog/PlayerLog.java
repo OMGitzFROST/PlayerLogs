@@ -58,6 +58,21 @@ public final class PlayerLog extends JavaPlugin
 		}
 	}
 	
+	@Override
+	public void onDisable()
+	{
+		try {
+			getUpdateManager().getTask().cancel();
+			
+			if (getUpdateManager().getTask().isCancelled()) {
+				log("update.task.disabled");
+			}
+		}
+		catch (Exception ex) {
+			ReportManager.createReport(ex, true);
+		}
+	}
+	
 	/*
 	 * STANDARD LOGGERS
 	 */
@@ -71,7 +86,7 @@ public final class PlayerLog extends JavaPlugin
 	 */
 	public void log(String key, Object... param)
 	{
-		getLogger().log(Level.INFO, getFrostApi().format(getLocaleManager().getMessage(key)), param);
+		getLogger().log(Level.INFO, getFrostApi().format(true, getLocaleManager().getMessage(key)), param);
 	}
 	
 	/**
@@ -84,7 +99,7 @@ public final class PlayerLog extends JavaPlugin
 	 */
 	public void log(Level level, String key, Object... param)
 	{
-		getLogger().log(level, getFrostApi().format(getLocaleManager().getMessage(key)), param);
+		getLogger().log(level, getFrostApi().format(true, getLocaleManager().getMessage(key)), param);
 	}
 	
 	/**
@@ -98,7 +113,7 @@ public final class PlayerLog extends JavaPlugin
 	public void log(@NotNull Class<?> cl, String key, Object... param)
 	{
 		String preMSG = getFrostApi().format("[{0}] ", cl.getSimpleName());
-		getLogger().log(Level.INFO, preMSG + getLocaleManager().getMessage(key), param);
+		getLogger().log(Level.INFO, preMSG + getFrostApi().format(true, getLocaleManager().getMessage(key), param));
 	}
 	
 	/**
@@ -113,7 +128,7 @@ public final class PlayerLog extends JavaPlugin
 	public void log(@NotNull Class<?> cl, Level level, String key, Object... param)
 	{
 		String preMSG = getFrostApi().format("[{0}] ", cl.getSimpleName());
-		getLogger().log(level, preMSG + getLocaleManager().getMessage(key), param);
+		getLogger().log(level, preMSG + getFrostApi().format(true, getLocaleManager().getMessage(key), param));
 	}
 	
 	/*
@@ -192,7 +207,7 @@ public final class PlayerLog extends JavaPlugin
 	 * @return Main class
 	 * @since 1.0
 	 */
-	public static PlayerLog getInstance()            { return instance; }
+	public static PlayerLog getInstance()              { return instance;                    }
 	
 	/**
 	 * A method used to return an instance of the FrostAPI class
@@ -201,7 +216,7 @@ public final class PlayerLog extends JavaPlugin
 	 * @since 1.0
 	 */
 	@Contract (value = " -> new", pure = true)
-	public @NotNull FrostAPI getFrostApi()           { return new FrostAPI(this); }
+	public @NotNull FrostAPI getFrostApi()             { return new FrostAPI(this);          }
 	
 	/**
 	 * A method used to return an instance of the LogManager class
@@ -210,7 +225,7 @@ public final class PlayerLog extends JavaPlugin
 	 * @since 1.0
 	 */
 	@Contract (" -> new")
-	public @NotNull LogManager getLogManager()       { return new LogManager();            }
+	public @NotNull LogManager getLogManager()         { return new LogManager();            }
 	
 	/**
 	 * A method used to return an instance of the ConfigManager class
@@ -246,5 +261,5 @@ public final class PlayerLog extends JavaPlugin
 	 * @since 1.0
 	 */
 	@Contract (" -> new")
-	public @NotNull UpdateManager getUpdateManager()    { return new UpdateManager();        }
+	public @NotNull UpdateManager getUpdateManager()   { return new UpdateManager();        }
 }
