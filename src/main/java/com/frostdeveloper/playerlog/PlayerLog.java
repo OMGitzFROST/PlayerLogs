@@ -219,13 +219,13 @@ public final class PlayerLog extends JavaPlugin
 	public @NotNull FrostAPI getFrostApi()             { return new FrostAPI(this);          }
 	
 	/**
-	 * A method used to return an instance of the LogManager class
+	 * A method used to return an instance of the ActivityManager class
 	 *
-	 * @return LogManager class
+	 * @return ActivityManager class
 	 * @since 1.0
 	 */
 	@Contract (" -> new")
-	public @NotNull LogManager getLogManager()         { return new LogManager();            }
+	public @NotNull ActivityManager getLogManager()         { return new ActivityManager();            }
 	
 	/**
 	 * A method used to return an instance of the ConfigManager class
