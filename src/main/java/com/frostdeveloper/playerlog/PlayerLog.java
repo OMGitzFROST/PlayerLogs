@@ -49,6 +49,7 @@ public final class PlayerLog extends JavaPlugin
 			
 			// REGISTER COMMANDS
 			Objects.requireNonNull(getCommand("playerlog")).setExecutor(new BaseCommand());
+			Objects.requireNonNull(getCommand("playerlog")).setTabCompleter(new BaseCommand());
 			
 			log("plugin.enable.success", getDescription().getVersion());
 		}
