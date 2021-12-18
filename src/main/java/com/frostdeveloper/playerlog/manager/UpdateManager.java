@@ -275,6 +275,12 @@ public class UpdateManager
 	 */
 	public String getRepo() { return REPO; }
 	
+	/**
+	 * A method used to return an instance of our updater task. This allows us to modify our task.
+	 *
+	 * @return Our updater task.
+	 * @since 1.0
+	 */
 	public BukkitTask getTask() { return task; }
 	
 	/**
