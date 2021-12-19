@@ -59,6 +59,11 @@ public final class PlayerLog extends JavaPlugin
 		}
 	}
 	
+	/**
+	 * A method invoked on plugin disable.
+	 *
+	 * @since 1.1
+	 */
 	@Override
 	public void onDisable()
 	{
@@ -68,6 +73,8 @@ public final class PlayerLog extends JavaPlugin
 			if (getUpdateManager().getTask().isCancelled()) {
 				log("update.task.disabled");
 			}
+			
+			log("plugin.disable.success", getFrostApi().getVersion());
 		}
 		catch (Exception ex) {
 			ReportManager.createReport(ex, true);
@@ -263,4 +270,7 @@ public final class PlayerLog extends JavaPlugin
 	 */
 	@Contract (" -> new")
 	public @NotNull UpdateManager getUpdateManager()   { return new UpdateManager();        }
+	
+	@Contract (" -> new")
+	public @NotNull ActivityManager getActivityManager()        { return new ActivityManager(); }
 }
