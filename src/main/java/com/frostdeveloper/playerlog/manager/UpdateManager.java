@@ -257,7 +257,6 @@ public class UpdateManager
 	{
 		double remote = Double.parseDouble(REMOTE_VERSION.replace("v", ""));
 		double local  = Double.parseDouble(plugin.getDescription().getVersion());
-		
 		return remote > local;
 	}
 	
