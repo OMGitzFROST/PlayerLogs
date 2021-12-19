@@ -114,7 +114,10 @@ public class LocaleManager
 	private Properties getDefaultMap() throws IOException
 	{
 		InputStream inputStream = plugin.getResource(messageFile.getName());
-		defaultMap.load(inputStream);
+		
+		if (inputStream != null) {
+			defaultMap.load(inputStream);
+		}
 		return defaultMap;
 	}
 	
