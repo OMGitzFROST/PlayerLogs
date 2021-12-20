@@ -68,14 +68,11 @@ public final class PlayerLog extends JavaPlugin
 	public void onDisable()
 	{
 		try {
-			getUpdateManager().getTask().cancel();
-			
-			if (getUpdateManager().getTask().isCancelled()) {
-				log("update.task.disabled");
-			}
+			getUpdateManager().stopTask();
 			log("plugin.disable.success", getFrostApi().getVersion());
 		}
 		catch (Exception ex) {
+			log("plugin.disable.failed", getDescription().getVersion());
 			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
