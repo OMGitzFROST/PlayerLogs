@@ -163,7 +163,7 @@ public class UpdateManager
 			}
 		}
 		catch (IOException ex) {
-			ReportManager.createReport(ex, true);
+			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
 	
@@ -210,11 +210,11 @@ public class UpdateManager
 				}
 			}
 			catch (ParseException | NumberFormatException ex) {
-				ReportManager.createReport(ex, true);
+				ReportManager.createReport(getClass(), ex, true);
 			}
 		}
 		catch (IOException ex) {
-			ReportManager.createReport(ex, true);
+			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
 	
