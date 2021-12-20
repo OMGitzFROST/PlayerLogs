@@ -18,8 +18,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A class used to implement necessary methods required to make our base command work as intended
+ *
+ * @author OMGitzFROST
+ * @since 1.1
+ */
 public class BaseCommand implements CommandExecutor, TabCompleter
 {
+	// CLASS INSTANCES
 	private final PlayerLog plugin = PlayerLog.getInstance();
 	private final UpdateManager updater = plugin.getUpdateManager();
 	private final ConfigManager config = plugin.getConfigManager();
@@ -68,11 +75,17 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 			return true;
 		}
 		catch (Exception ex) {
-			ReportManager.createReport(ex, true);
+			ReportManager.createReport(getClass(), ex, true);
 			return true;
 		}
 	}
 	
+	/**
+	 * A method used to execute our update command
+	 *
+	 * @param sender Command sender
+	 * @since 1.1
+	 */
 	private void executeUpdate(CommandSender sender)
 	{
 		if (api.hasPermission(sender, Permission.CMD_UPDATE)) {
@@ -90,10 +103,18 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 		}
 	}
 	
+	/**
+	 * A method used to execute our reload command
+	 *
+	 * @param sender Command sender
+	 * @since 1.1
+	 */
 	private void executeReload(CommandSender sender)
 	{
 		if (api.hasPermission(sender, Permission.CMD_RELOAD)) {
 			updater.reload();
+			activity.verifyLoggers();
+			config.verifyConfig();
 			
 			if (sender instanceof Player) {
 				sendMessage(sender, "plugin.reload.success");
