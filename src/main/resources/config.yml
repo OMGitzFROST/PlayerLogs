@@ -7,7 +7,7 @@
 # Config Versioning is becoming very common among popular server plugins, it is
 # an effective way to make sure developers can implement new features while making
 # also making it painless for server owners to start using. DON'T CHANGE THIS VALUE
-version: 1.0
+version: 1.1
 
 # Localization is a very fun way to make sure we allow our plugin to speak to you
 # in a language that is familiar to you. We've programmed this feature to automatically
@@ -54,6 +54,11 @@ debug-log: false
 # on activity types. If enabled we will log separate files for each module, if disabled
 # we will log all activity into one convenient file.
 modularize: false
+
+# This setting allows our plugin to use player names instead of uuids for creating activity indexes, Keep in mind
+# Keep in mind uuid's are fail proof as players are able to change their names. Though usernames makes searching
+# for player a lot easier.
+use-uuid: true
 
 # This section is used to determine which modules should be enabled, we understand that
 # server owner has different uses for this plugin and thus might not require each module.
