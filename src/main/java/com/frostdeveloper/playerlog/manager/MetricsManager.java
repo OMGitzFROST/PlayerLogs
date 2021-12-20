@@ -31,6 +31,7 @@ public class MetricsManager
 				Metrics metrics = new Metrics(plugin, id);
 				
 				metrics.addCustomChart(new SimplePie("locale", () -> config.getString(ConfigManager.Config.LOCALE)));
+				metrics.addCustomChart(new SimplePie("version", () -> config.getString(ConfigManager.Config.VERSION)));
 				metrics.addCustomChart(new SimplePie("auto_updater", () -> config.getString(ConfigManager.Config.AUTO_UPDATE)));
 				metrics.addCustomChart(new SimplePie("use_prefix", () -> config.getString(ConfigManager.Config.USE_PREFIX)));
 				metrics.addCustomChart(new SimplePie("use_custom_message", () -> config.getString(ConfigManager.Config.CUSTOM_MESSAGE)));
