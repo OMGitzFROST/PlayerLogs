@@ -51,6 +51,24 @@ public final class FrostAPI
 		return new File(plugin.getDataFolder(), path);
 	}
 	
+	/**
+	 * A method used to create a file object. The optional parameters is used to include a parameter into file path
+	 *
+	 * @param path String path
+	 * @param param Optional Parameters
+	 * @return File object
+	 * @since 1.0
+	 */
+	@Contract ("_, _ -> new")
+	public @NotNull File toFile(@NotNull String path, Object... param)
+	{
+		if (path.contains("/")) {
+			String[] splitPath = path.split("/");
+			return new File(plugin.getDataFolder() + File.separator + splitPath[0], format(splitPath[1], param));
+		}
+		return new File(plugin.getDataFolder(), format(path, param));
+	}
+	
 	/*
 	 * INDEX TYPE METHODS
 	 */
@@ -122,6 +140,26 @@ public final class FrostAPI
 			targetFile.getParentFile().mkdirs();
 		}
 	}
+	
+	/**
+	 * A method used to return the parent file of a file.
+	 *
+	 * @param targetFile Target file
+	 * @return Parent file
+	 * @since 1.0
+	 */
+	public File getParent(@NotNull File targetFile)
+	{
+		return targetFile.getParentFile();
+	}
+	
+	/**
+	 * A method used to return the server's plugin folder
+	 *
+	 * @return Plugin's Folder
+	 * @since 1.0
+	 */
+	public File getPluginFolder() { return plugin.getDataFolder().getParentFile(); }
 	
 	/*
 	 * FORMATTERS
@@ -249,6 +287,55 @@ public final class FrostAPI
 	/*
 	 * PLAYER METHODS
 	 */
+	
+	/*
+	 * OBJECT FORMATS
+	 */
+	
+	/**
+	 * A method used to return an object as a string
+	 *
+	 * @param obj Target object
+	 * @return Object as a string
+	 * @since 1.0
+	 */
+	public String toString(@NotNull Object obj) { return String.valueOf(obj);  }
+	
+	/**
+	 * A method used to return an object as an int
+	 *
+	 * @param obj Target object
+	 * @return Object as an int
+	 * @since 1.0
+	 */
+	public int toInt(@NotNull Object obj) { return Integer.parseInt(toString(obj)); }
+	
+	/**
+	 * A method used to return an object as a double
+	 *
+	 * @param obj Target object
+	 * @return Object as a double
+	 * @since 1.0
+	 */
+	public double toDouble(@NotNull Object obj) { return Double.parseDouble(toString(obj)); }
+	
+	/**
+	 * A method used to return an object as a float
+	 *
+	 * @param obj Target float
+	 * @return Object as a float
+	 * @since 1.0
+	 */
+	public float toFloat(@NotNull String obj) { return Float.parseFloat(toString(obj)); }
+	
+	/**
+	 * A method used to return an object as a boolean
+	 *
+	 * @param obj Target object
+	 * @return Object as a boolean
+	 * @since 1.0
+	 */
+	public boolean toBoolean(@NotNull Object obj) { return Boolean.parseBoolean(toString(obj)); }
 	
 	/**
 	 * A method used tp determine whether a command sender is permitted any of the listed
