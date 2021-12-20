@@ -105,6 +105,21 @@ public class UpdateManager
 	}
 	
 	/**
+	 * A method used to stop our updater task, this method will stop the current scheduler, setting it up for a successful
+	 * server state change.
+	 *
+	 * @since 1.1
+	 */
+	public void stopTask()
+	{
+		getTask().cancel();
+		
+		if (getTask().isCancelled()) {
+			plugin.debug("update.task.disabled");
+		}
+	}
+	
+	/**
 	 * A method used to verify and download an update if this updater determines an update is required.
 	 *
 	 * @since 1.1
