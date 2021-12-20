@@ -52,14 +52,10 @@ public class CacheManager
 	public String getCache(String path)
 	{
 		if (cacheFile.exists()) {
-			plugin.debug("index.search.success", cacheFile.getName());
 			FileConfiguration config = YamlConfiguration.loadConfiguration(cacheFile);
 			return config.getString(path);
 		}
-		else {
-			plugin.debug("index.search.failed", cacheFile.getName());
-			return null;
-		}
+		return null;
 	}
 	
 	/**
