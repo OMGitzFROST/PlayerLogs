@@ -2,20 +2,35 @@ package com.frostdeveloper.playerlog.command;
 
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlog.PlayerLog;
+import com.frostdeveloper.playerlog.manager.ActivityManager;
 import com.frostdeveloper.playerlog.manager.ConfigManager;
+import com.frostdeveloper.playerlog.manager.ReportManager;
 import com.frostdeveloper.playerlog.manager.UpdateManager;
 import com.frostdeveloper.playerlog.util.Permission;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class BaseCommand implements CommandExecutor
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * A class used to implement necessary methods required to make our base command work as intended
+ *
+ * @author OMGitzFROST
+ * @since 1.1
+ */
+public class BaseCommand implements CommandExecutor, TabCompleter
 {
+	// CLASS INSTANCES
 	private final PlayerLog plugin = PlayerLog.getInstance();
 	private final UpdateManager updater = plugin.getUpdateManager();
 	private final ConfigManager config = plugin.getConfigManager();
+	private final ActivityManager activity = plugin.getLogManager();
 	private final FrostAPI api = plugin.getFrostApi();
 	
 	/**
@@ -34,27 +49,43 @@ public class BaseCommand implements CommandExecutor
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args)
 	{
-		if (label.equalsIgnoreCase("playerlog") || command.getAliases().contains(label)) {
-			
-			if (args.length == 1) {
-				switch (args[0]) {
-					case "update":
-						executeUpdate(sender);
-						break;
-					case "reload":
-						executeReload(sender);
-						break;
-					default:
+		try {
+			if (label.equalsIgnoreCase("playerlog") || command.getAliases().contains(label)) {
+				if (api.hasPermission(sender, Permission.CMD_RELOAD, Permission.CMD_UPDATE)) {
+					if (args.length == 1) {
+						switch (args[0]) {
+							case "update":
+								executeUpdate(sender);
+								break;
+							case "reload":
+								executeReload(sender);
+								break;
+							default:
+								sendMessage(sender, "plugin.command.invalid", getLabelUsage(command, label));
+						}
+					}
+					else {
 						sendMessage(sender, "plugin.command.invalid", getLabelUsage(command, label));
+					}
+				}
+				else {
+					sendMessage(sender, "plugin.command.denied");
 				}
 			}
-			else {
-				sendMessage(sender, "plugin.command.invalid", getLabelUsage(command, label));
-			}
+			return true;
 		}
-		return true;
+		catch (Exception ex) {
+			ReportManager.createReport(getClass(), ex, true);
+			return true;
+		}
 	}
 	
+	/**
+	 * A method used to execute our update command
+	 *
+	 * @param sender Command sender
+	 * @since 1.1
+	 */
 	private void executeUpdate(CommandSender sender)
 	{
 		if (api.hasPermission(sender, Permission.CMD_UPDATE)) {
@@ -67,25 +98,59 @@ public class BaseCommand implements CommandExecutor
 			}
 			plugin.log(updater.getMessage());
 		}
+		else {
+			sendMessage(sender, "plugin.command.denied");
+		}
 	}
 	
+	/**
+	 * A method used to execute our reload command
+	 *
+	 * @param sender Command sender
+	 * @since 1.1
+	 */
 	private void executeReload(CommandSender sender)
 	{
 		if (api.hasPermission(sender, Permission.CMD_RELOAD)) {
 			updater.reload();
+			activity.verifyLoggers();
+			config.verifyConfig();
 			
 			if (sender instanceof Player) {
 				sendMessage(sender, "plugin.reload.success");
 			}
 			plugin.log("plugin.reload.success");
 		}
+		else {
+			sendMessage(sender, "plugin.command.denied");
+		}
 	}
 	
+	/*
+	 * MISC METHODS
+	 */
+	
+	/**
+	 * A method used to get a command usage from a label.
+	 *
+	 * @param cmd Executed command
+	 * @param label References label
+	 * @return Command ussage.
+	 * @since 1.1
+	 */
 	private @NotNull String getLabelUsage(@NotNull Command cmd, String label)
 	{
 		return api.format(cmd.getUsage(), label);
 	}
 	
+	/**
+	 * A method used to send a player a localized message.
+	 *
+	 * @param sender Command sender
+	 * @param message Target Message
+	 * @param param Optional parameters
+	 * @since 1.1
+	 */
 	private void sendMessage(@NotNull CommandSender sender, String message, Object... param)
 	{
 		boolean usePrefix = config.getBoolean(ConfigManager.Config.USE_PREFIX);
@@ -97,5 +162,29 @@ public class BaseCommand implements CommandExecutor
 		else {
 			sender.sendMessage(api.format(plugin.getLocaleManager().getMessage(message), param));
 		}
+	}
+	
+	/**
+	 * Requests a list of possible completions for a command argument.
+	 *
+	 * @param sender  Source of the command.  For players tab-completing a command inside of a command block, this
+	 *                will be the player, not the command block.
+	 * @param command Command which was executed
+	 * @param label   The alias used
+	 * @param args    The arguments passed to the command, including final partial argument to be completed and
+	 *                command label
+	 * @return A List of possible completions for the final argument, or null to default to the command executor
+	 */
+	@Nullable
+	@Override
+	public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args)
+	{
+		if (label.equalsIgnoreCase("playerlog") || command.getAliases().contains(label)) {
+			List<String> options = new ArrayList<>();
+			api.addToList(options,"reload", api.hasPermission(sender, Permission.CMD_RELOAD));
+			api.addToList(options,"update", api.hasPermission(sender, Permission.CMD_UPDATE));
+			return options;
+		}
+		return null;
 	}
 }

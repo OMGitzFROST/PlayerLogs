@@ -36,42 +36,59 @@ public final class PlayerLog extends JavaPlugin
 		try {
 			instance = this;
 			getLogger().setFilter(new LogFilter());
+			
+			if (isDeveloperMode()) {
+				log("WARNING! THIS PLUGIN IS IN DEVELOPER MODE and may contain bugs and errors");
+				log("Please notify the developer of this issue, Use this plugin at your own risk.");
+			}
+			
 			getUpdateManager().runTask();
 			getMetricsManager().runTask();
-			
+
 			// CREATE FILES
 			getConfigManager().createFile();
 			getLocaleManager().createFile();
-			
+
 			// REGISTER LISTENERS
 			getServer().getPluginManager().registerEvents(new ActivityListener(), this);
 			getServer().getPluginManager().registerEvents(new JoinListener(), this);
-			
+
 			// REGISTER COMMANDS
 			Objects.requireNonNull(getCommand("playerlog")).setExecutor(new BaseCommand());
-			
+			Objects.requireNonNull(getCommand("playerlog")).setTabCompleter(new BaseCommand());
+
 			log("plugin.enable.success", getDescription().getVersion());
 		}
 		catch (Exception ex) {
 			log("plugin.enable.failed", getDescription().getVersion());
-			ReportManager.createReport(ex, true);
+			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
 	
+	/**
+	 * A method invoked on plugin disable.
+	 *
+	 * @since 1.1
+	 */
 	@Override
 	public void onDisable()
 	{
 		try {
-			getUpdateManager().getTask().cancel();
-			
-			if (getUpdateManager().getTask().isCancelled()) {
-				log("update.task.disabled");
-			}
+			getUpdateManager().stopTask();
+			log("plugin.disable.success", getFrostApi().getVersion());
 		}
 		catch (Exception ex) {
-			ReportManager.createReport(ex, true);
+			log("plugin.disable.failed", getDescription().getVersion());
+			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
+	
+	/**
+	 * A method used to return whether this plugin is in developer mode.
+	 *
+	 * @return Developer mdoe
+	 */
+	public boolean isDeveloperMode() { return false; }
 	
 	/*
 	 * STANDARD LOGGERS
@@ -138,10 +155,13 @@ public final class PlayerLog extends JavaPlugin
 	/**
 	 * A method used to log a debug message to the console.
 	 *
-	 * @param msg Object instance of a message
+	 * @param key Object instance of a message
 	 * @since 1.1
 	 */
-	public void debug(Object msg) { getLogger().log(Level.INFO, "[DEBUG] " + msg); }
+	public void debug(@NotNull Object key)
+	{
+		getLogger().log(Level.INFO, "[DEBUG] " + getFrostApi().format(getLocaleManager().getMessage(key.toString())));
+	}
 	
 	/**
 	 * A method used to log debug messages to the console.
@@ -219,13 +239,13 @@ public final class PlayerLog extends JavaPlugin
 	public @NotNull FrostAPI getFrostApi()             { return new FrostAPI(this);          }
 	
 	/**
-	 * A method used to return an instance of the LogManager class
+	 * A method used to return an instance of the ActivityManager class
 	 *
-	 * @return LogManager class
+	 * @return ActivityManager class
 	 * @since 1.0
 	 */
 	@Contract (" -> new")
-	public @NotNull LogManager getLogManager()         { return new LogManager();            }
+	public @NotNull ActivityManager getLogManager()         { return new ActivityManager();            }
 	
 	/**
 	 * A method used to return an instance of the ConfigManager class
@@ -262,4 +282,7 @@ public final class PlayerLog extends JavaPlugin
 	 */
 	@Contract (" -> new")
 	public @NotNull UpdateManager getUpdateManager()   { return new UpdateManager();        }
+	
+	@Contract (" -> new")
+	public @NotNull ActivityManager getActivityManager()        { return new ActivityManager(); }
 }

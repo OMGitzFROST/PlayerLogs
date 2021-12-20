@@ -40,6 +40,7 @@ public class UpdateManager
 	private String REMOTE_VERSION;
 	private String DOWNLOAD_URL;
 	private String ASSET_NAME;
+	private String CHANGELOG;
 	
 	// UPDATER OBJECTS
 	private static Result result;
@@ -104,6 +105,21 @@ public class UpdateManager
 	}
 	
 	/**
+	 * A method used to stop our updater task, this method will stop the current scheduler, setting it up for a successful
+	 * server state change.
+	 *
+	 * @since 1.1
+	 */
+	public void stopTask()
+	{
+		getTask().cancel();
+		
+		if (getTask().isCancelled()) {
+			plugin.debug("update.task.disabled");
+		}
+	}
+	
+	/**
 	 * A method used to verify and download an update if this updater determines an update is required.
 	 *
 	 * @since 1.1
@@ -149,9 +165,20 @@ public class UpdateManager
 			if (downloadFile.exists()) {
 				result = Result.DOWNLOADED;
 			}
+			
+			if (CHANGELOG != null) {
+				FileWriter fw = new FileWriter(new File(plugin.getDataFolder(),"CHANGELOG- " + REMOTE_VERSION + ".txt"));
+				PrintWriter pw = new PrintWriter(fw);
+				
+				CHANGELOG = CHANGELOG.replaceAll("\\*", "    ∙");
+				CHANGELOG = CHANGELOG.replaceAll("#", "");
+				
+				pw.println(CHANGELOG);
+				pw.close();
+			}
 		}
 		catch (IOException ex) {
-			ReportManager.createReport(ex, true);
+			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
 	
@@ -185,6 +212,7 @@ public class UpdateManager
 				JSONArray jsonArray = (JSONArray) releaseInfo.get("assets");
 				
 				REMOTE_VERSION = (String) releaseInfo.get("tag_name");
+				CHANGELOG = (String) releaseInfo.get("body");
 				
 				if (!jsonArray.isEmpty()) {
 					JSONObject assetInfo = (JSONObject) jsonArray.get(0);
@@ -197,11 +225,11 @@ public class UpdateManager
 				}
 			}
 			catch (ParseException | NumberFormatException ex) {
-				ReportManager.createReport(ex, true);
+				ReportManager.createReport(getClass(), ex, true);
 			}
 		}
 		catch (IOException ex) {
-			ReportManager.createReport(ex, true);
+			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
 	
@@ -244,7 +272,6 @@ public class UpdateManager
 	{
 		double remote = Double.parseDouble(REMOTE_VERSION.replace("v", ""));
 		double local  = Double.parseDouble(plugin.getDescription().getVersion());
-		
 		return remote > local;
 	}
 	

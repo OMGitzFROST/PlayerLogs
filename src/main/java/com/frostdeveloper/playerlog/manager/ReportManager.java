@@ -30,8 +30,8 @@ public class ReportManager
 	private static final FrostAPI api = plugin.getFrostApi();
 	
 	// CLASS SPECIFIC OBJECTS
-	private static final File reportDir = new File(plugin.getDataFolder(), "crash-reports");
-	private static final File report = new File(reportDir, "report.txt");
+	private static final File reportDir = api.toFile("crash-reports");
+	private static final File report = api.toFile("crash-reports/report.txt");
 	
 	/**
 	 * The method used publicly to create our report, it will rename older files to
@@ -40,22 +40,26 @@ public class ReportManager
 	 * @param thrown Exception thrown
 	 * @since 1.1
 	 */
-	public static void createReport(Exception thrown, boolean announce)
+	public static void createReport(Class<?> cl, Exception thrown, boolean print)
 	{
 		try {
 			File previousReport = new File(reportDir, api.format("crash-{0}.txt", getDateCreated(report)));
 			
 			if (reportDir.exists() || reportDir.mkdirs()) {
+				cleanDirectory();
+				
 				if (report.exists() && report.renameTo(previousReport)) {
-					writeToFile(thrown);
+					writeToFile(cl, thrown);
 				}
 				
 				if (!report.exists() && report.createNewFile()) {
-					writeToFile(thrown);
+					writeToFile(cl, thrown);
 				}
 				
-				if (announce) {
-					plugin.log(Level.SEVERE, "report.print.success", report.getPath());
+				plugin.log(cl, Level.SEVERE, "report.print.success", report.getPath());
+				
+				if (print) {
+					thrown.printStackTrace();
 				}
 			}
 		}
@@ -70,7 +74,7 @@ public class ReportManager
 	 * @param thrown The exception thrown
 	 * @since 1.1
 	 */
-	private static void writeToFile(@NotNull Exception thrown)
+	private static void writeToFile(Class<?> cl, @NotNull Exception thrown)
 	{
 		try {
 			PrintWriter writer = new PrintWriter(report);
@@ -79,6 +83,8 @@ public class ReportManager
 				writer.println("Error Message: " + thrown.getMessage());
 			}
 			writer.println("Version: " + plugin.getDescription().getVersion());
+			writer.println("Fault: " + cl.getSimpleName());
+			writer.println("At Line: " + thrown.getStackTrace()[0].getLineNumber());
 			writer.println("");
 			thrown.printStackTrace(writer);
 			writer.close();

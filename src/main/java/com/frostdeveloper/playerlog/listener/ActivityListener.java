@@ -3,7 +3,7 @@ package com.frostdeveloper.playerlog.listener;
 import com.frostdeveloper.playerlog.util.Activity;
 import com.frostdeveloper.playerlog.PlayerLog;
 import com.frostdeveloper.playerlog.manager.ConfigManager;
-import com.frostdeveloper.playerlog.manager.LogManager;
+import com.frostdeveloper.playerlog.manager.ActivityManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 public class ActivityListener implements Listener
 {
 	private final PlayerLog plugin = PlayerLog.getInstance();
-	private final LogManager log = plugin.getLogManager();
+	private final ActivityManager log = plugin.getLogManager();
 	private final ConfigManager config = plugin.getConfigManager();
 	
 	/**

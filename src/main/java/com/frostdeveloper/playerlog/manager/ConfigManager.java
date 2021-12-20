@@ -17,10 +17,12 @@ import java.io.File;
  */
 public class ConfigManager
 {
+	// CLASS INSTANCES
 	private static final PlayerLog plugin = PlayerLog.getInstance();
 	private static final FrostAPI api = plugin.getFrostApi();
 	
-	private final File configFile = new File(plugin.getDataFolder(), "config.yml");
+	// CLASS SPECIFIC OBJECTS
+	private final File configFile = api.toFile("config.yml");
 	
 	/**
 	 * A method used to create our configuration file if one does not exist.
@@ -29,12 +31,38 @@ public class ConfigManager
 	 */
 	public void createFile()
 	{
+		verifyConfig();
+		
 		if (!configFile.exists()) {
 			plugin.saveResource(configFile.getName(), true);
 			plugin.log("index.create.success", configFile.getName());
 		}
 		else {
 			plugin.log("index.search.success", configFile.getName());
+		}
+	}
+	
+	/**
+	 * A method used to verify if the config file is up-to-date, if it is not, we will update to the latest file.
+	 *
+	 * @since 1.1
+	 */
+	public void verifyConfig()
+	{
+		if (configFile.exists()) {
+			float currentVersion = getFloat(Config.VERSION);
+			float latestVersion  = api.toFloat(Config.VERSION.getDefault());
+			
+			if (latestVersion > currentVersion) {
+				File backupFile = api.toFile("backup/old-config.yml", currentVersion);
+				
+				api.createParent(backupFile);
+				
+				if (configFile.renameTo(backupFile)) {
+					createFile();
+					plugin.log("index.update.success", configFile.getName());
+				}
+			}
 		}
 	}
 	
@@ -59,26 +87,40 @@ public class ConfigManager
 	 * @return Parsed boolean
 	 * @since 1.0
 	 */
-	public boolean getBoolean(Config path)
-	{
-		return Boolean.parseBoolean(getString(path));
-	}
+	public boolean getBoolean(Config path) { return Boolean.parseBoolean(getString(path)); }
 	
 	/**
-	 * A method used to return an instance of our config file.
+	 * A method used to return a double value from our configuration, it takes a string and parses it into
+	 * a valid double.
 	 *
-	 * @return Our config file
-	 * @since 1.0
+	 * @param path Configuration path
+	 * @return Parsed double
+	 * @since 1.1
 	 */
-	public File getFile() { return configFile; }
+	public double getDouble(Config path)   { return Double.parseDouble(getString(path));   }
+	
+	/**
+	 * A method used to return a Float value from our configuration, it takes a string and parses it into
+	 * a valid boolean.
+	 *
+	 * @param path Configuration Float
+	 * @return Parsed Float
+	 * @since 1.1
+	 */
+	public float getFloat(Config path)     { return Float.parseFloat(getString(path));     }
+	
+	/*
+	 * ENUM
+	 */
 	
 	/**
 	 * An enum used to define our configuration paths as well as their defaults values
 	 *
 	 * @since 1.0
 	 */
-	public enum Config {
-		VERSION("version", 1.0),
+	public enum Config
+	{
+		VERSION("version", 1.1),
 		LOCALE("locale", "en"),
 		AUTO_UPDATE("auto-update", true),
 		USE_METRICS("use-metrics", true),
@@ -88,6 +130,7 @@ public class ConfigManager
 		DEBUG_MODE("debug-log", false),
 		
 		MODULARIZE("modularize", false),
+		USE_UUID("use-uuid", true),
 		
 		MODULE_JOIN("modules.join", true),
 		MODULE_QUIT("modules.quit", true),

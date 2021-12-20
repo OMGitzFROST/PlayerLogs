@@ -23,7 +23,7 @@ public class LocaleManager
 	private final FrostAPI api = plugin.getFrostApi();
 	
 	// CLASS SPECIFIC OBJECTS
-	private final File messageFile = new File(plugin.getDataFolder(), api.format("message_{0}.properties", getLocale()));
+	private final File messageFile = api.toFile(api.format("message_{0}.properties", getLocale()));
 	private final Properties customMap = new Properties();
 	private final Properties defaultMap = new Properties();
 	
@@ -114,7 +114,10 @@ public class LocaleManager
 	private Properties getDefaultMap() throws IOException
 	{
 		InputStream inputStream = plugin.getResource(messageFile.getName());
-		defaultMap.load(inputStream);
+		
+		if (inputStream != null) {
+			defaultMap.load(inputStream);
+		}
 		return defaultMap;
 	}
 	
