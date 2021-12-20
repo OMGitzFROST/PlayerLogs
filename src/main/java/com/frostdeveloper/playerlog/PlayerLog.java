@@ -38,24 +38,24 @@ public final class PlayerLog extends JavaPlugin
 			getLogger().setFilter(new LogFilter());
 			getUpdateManager().runTask();
 			getMetricsManager().runTask();
-			
+
 			// CREATE FILES
 			getConfigManager().createFile();
 			getLocaleManager().createFile();
-			
+
 			// REGISTER LISTENERS
 			getServer().getPluginManager().registerEvents(new ActivityListener(), this);
 			getServer().getPluginManager().registerEvents(new JoinListener(), this);
-			
+
 			// REGISTER COMMANDS
 			Objects.requireNonNull(getCommand("playerlog")).setExecutor(new BaseCommand());
 			Objects.requireNonNull(getCommand("playerlog")).setTabCompleter(new BaseCommand());
-			
+
 			log("plugin.enable.success", getDescription().getVersion());
 		}
 		catch (Exception ex) {
 			log("plugin.enable.failed", getDescription().getVersion());
-			ReportManager.createReport(ex, true);
+			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
 	
@@ -73,11 +73,10 @@ public final class PlayerLog extends JavaPlugin
 			if (getUpdateManager().getTask().isCancelled()) {
 				log("update.task.disabled");
 			}
-			
 			log("plugin.disable.success", getFrostApi().getVersion());
 		}
 		catch (Exception ex) {
-			ReportManager.createReport(ex, true);
+			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
 	
