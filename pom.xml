@@ -6,7 +6,7 @@
 
     <groupId>com.frostdeveloper</groupId>
     <artifactId>PlayerLogs</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
 
     <name>PlayerLog</name>
@@ -48,7 +48,7 @@
                         <relocation>
                             <pattern>org.bstats</pattern>
                             <!-- Replace this with your package! -->
-                            <shadedPattern>com.frostdeveloper.services</shadedPattern>
+                            <shadedPattern>com.frostdeveloper.playerlogs.services</shadedPattern>
                         </relocation>
                     </relocations>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
