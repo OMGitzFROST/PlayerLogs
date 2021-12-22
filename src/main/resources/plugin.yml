@@ -1,6 +1,6 @@
 name: PlayerLogs
 version: '${project.version}'
-main: com.frostdeveloper.playerlog.PlayerLog
+main: com.frostdeveloper.playerlogs.PlayerLogs
 api-version: 1.17
 prefix: PL
 authors: [ OMGitzFROST ]
@@ -12,7 +12,7 @@ commands:
         aliases: [pl, plog, plogs, playerlogs]
         description: Base command for this plugin.
         usage: /{0} [reload | update | purge]
-        
+
 permissions:
     playerlog.*:
         description: Grants access to all features in this plugin
