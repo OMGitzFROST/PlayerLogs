@@ -36,12 +36,6 @@ public final class PlayerLog extends JavaPlugin
 		try {
 			instance = this;
 			getLogger().setFilter(new LogFilter());
-			
-			if (isDeveloperMode()) {
-				log("WARNING! THIS PLUGIN IS IN DEVELOPER MODE and may contain bugs and errors");
-				log("Please notify the developer of this issue, Use this plugin at your own risk.");
-			}
-			
 			getUpdateManager().runTask();
 			getMetricsManager().runTask();
 
@@ -82,13 +76,6 @@ public final class PlayerLog extends JavaPlugin
 			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
-	
-	/**
-	 * A method used to return whether this plugin is in developer mode.
-	 *
-	 * @return Developer mdoe
-	 */
-	public boolean isDeveloperMode() { return false; }
 	
 	/*
 	 * STANDARD LOGGERS
@@ -155,13 +142,10 @@ public final class PlayerLog extends JavaPlugin
 	/**
 	 * A method used to log a debug message to the console.
 	 *
-	 * @param key Object instance of a message
+	 * @param msg Object instance of a message
 	 * @since 1.1
 	 */
-	public void debug(@NotNull Object key)
-	{
-		getLogger().log(Level.INFO, "[DEBUG] " + getFrostApi().format(getLocaleManager().getMessage(key.toString())));
-	}
+	public void debug(Object msg) { getLogger().log(Level.INFO, "[DEBUG] " + msg); }
 	
 	/**
 	 * A method used to log debug messages to the console.
