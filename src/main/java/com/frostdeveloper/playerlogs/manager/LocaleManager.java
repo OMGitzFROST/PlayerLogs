@@ -1,7 +1,8 @@
-package com.frostdeveloper.playerlog.manager;
+package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.playerlog.PlayerLog;
+import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.definition.Config;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +19,7 @@ import java.util.Properties;
 public class LocaleManager
 {
 	// CLASS INSTANCES
-	private final PlayerLog plugin = PlayerLog.getInstance();
+	private final PlayerLogs plugin = PlayerLogs.getInstance();
 	private final ConfigManager config = plugin.getConfigManager();
 	private final FrostAPI api = plugin.getFrostApi();
 	
@@ -38,7 +39,7 @@ public class LocaleManager
 	 */
 	public void createFile()
 	{
-		if (!messageFile.exists() && config.getBoolean(ConfigManager.Config.CUSTOM_MESSAGE)) {
+		if (!messageFile.exists() && config.getBoolean(Config.CUSTOM_MESSAGE)) {
 			InputStream inputStream = plugin.getResource(messageFile.getName());
 			
 			if (inputStream != null) {
@@ -130,10 +131,10 @@ public class LocaleManager
 	 */
 	private String getLocale()
 	{
-		if (verifyLocale(config.getString(ConfigManager.Config.LOCALE))) {
-			return config.getString(ConfigManager.Config.LOCALE);
+		if (verifyLocale(config.getString(Config.LOCALE))) {
+			return config.getString(Config.LOCALE);
 		}
-		return ConfigManager.Config.LOCALE.getDefault();
+		return Config.LOCALE.getDefault();
 	}
 	
 	/*

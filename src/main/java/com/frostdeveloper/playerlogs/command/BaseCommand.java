@@ -1,17 +1,18 @@
-package com.frostdeveloper.playerlog.command;
+package com.frostdeveloper.playerlogs.command;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.playerlog.PlayerLog;
-import com.frostdeveloper.playerlog.manager.ActivityManager;
-import com.frostdeveloper.playerlog.manager.ConfigManager;
-import com.frostdeveloper.playerlog.manager.ReportManager;
-import com.frostdeveloper.playerlog.manager.UpdateManager;
-import com.frostdeveloper.playerlog.util.Permission;
+import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.definition.Permission;
+import com.frostdeveloper.playerlogs.manager.ConfigManager;
+import com.frostdeveloper.playerlogs.manager.ModuleManager;
+import com.frostdeveloper.playerlogs.manager.ReportManager;
+import com.frostdeveloper.playerlogs.manager.UpdateManager;
+import com.frostdeveloper.playerlogs.model.User;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,10 +28,10 @@ import java.util.List;
 public class BaseCommand implements CommandExecutor, TabCompleter
 {
 	// CLASS INSTANCES
-	private final PlayerLog plugin = PlayerLog.getInstance();
+	private final PlayerLogs plugin = PlayerLogs.getInstance();
 	private final UpdateManager updater = plugin.getUpdateManager();
 	private final ConfigManager config = plugin.getConfigManager();
-	private final ActivityManager activity = plugin.getLogManager();
+	private final ModuleManager module = plugin.getModuleManager();
 	private final FrostAPI api = plugin.getFrostApi();
 	
 	/**
@@ -50,26 +51,28 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args)
 	{
 		try {
+			User user = new User((OfflinePlayer) sender);
+			
 			if (label.equalsIgnoreCase("playerlog") || command.getAliases().contains(label)) {
-				if (api.hasPermission(sender, Permission.CMD_RELOAD, Permission.CMD_UPDATE)) {
+				if (user.hasPermission(Permission.CMD_RELOAD, Permission.CMD_UPDATE)) {
 					if (args.length == 1) {
 						switch (args[0]) {
 							case "update":
-								executeUpdate(sender);
+								executeUpdate(user);
 								break;
 							case "reload":
-								executeReload(sender);
+								executeReload(user);
 								break;
 							default:
-								sendMessage(sender, "plugin.command.invalid", getLabelUsage(command, label));
+								user.sendMessage("plugin.command.invalid", getLabelUsage(command, label));
 						}
 					}
 					else {
-						sendMessage(sender, "plugin.command.invalid", getLabelUsage(command, label));
+						user.sendMessage("plugin.command.invalid", getLabelUsage(command, label));
 					}
 				}
 				else {
-					sendMessage(sender, "plugin.command.denied");
+					user.sendMessage("plugin.command.denied");
 				}
 			}
 			return true;
@@ -83,46 +86,44 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	/**
 	 * A method used to execute our update command
 	 *
-	 * @param sender Command sender
 	 * @since 1.1
 	 */
-	private void executeUpdate(CommandSender sender)
+	private void executeUpdate(@NotNull User user)
 	{
-		if (api.hasPermission(sender, Permission.CMD_UPDATE)) {
+		if (user.hasPermission(Permission.CMD_UPDATE)) {
 			updater.attemptDownload();
 			
-			if (sender instanceof Player) {
-				sendMessage(sender, updater.getMessage());
+			if (user.getPlayer().isOnline()) {
+				user.sendMessage(updater.getMessage());
 				plugin.log(updater.getMessage());
 				return;
 			}
 			plugin.log(updater.getMessage());
 		}
 		else {
-			sendMessage(sender, "plugin.command.denied");
+			user.sendMessage("plugin.command.denied");
 		}
 	}
 	
 	/**
 	 * A method used to execute our reload command
 	 *
-	 * @param sender Command sender
 	 * @since 1.1
 	 */
-	private void executeReload(CommandSender sender)
+	private void executeReload(@NotNull User user)
 	{
-		if (api.hasPermission(sender, Permission.CMD_RELOAD)) {
+		if (user.hasPermission(Permission.CMD_RELOAD)) {
 			updater.reload();
-			activity.verifyLoggers();
-			config.verifyConfig();
+			module.correctUserFiles();
+			config.attemptUpdate();
 			
-			if (sender instanceof Player) {
-				sendMessage(sender, "plugin.reload.success");
+			if (user.getPlayer().isOnline()) {
+				user.sendMessage("plugin.reload.success");
 			}
 			plugin.log("plugin.reload.success");
 		}
 		else {
-			sendMessage(sender, "plugin.command.denied");
+			user.sendMessage("plugin.command.denied");
 		}
 	}
 	
@@ -144,27 +145,6 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	}
 	
 	/**
-	 * A method used to send a player a localized message.
-	 *
-	 * @param sender Command sender
-	 * @param message Target Message
-	 * @param param Optional parameters
-	 * @since 1.1
-	 */
-	private void sendMessage(@NotNull CommandSender sender, String message, Object... param)
-	{
-		boolean usePrefix = config.getBoolean(ConfigManager.Config.USE_PREFIX);
-		String prefix = config.getString(ConfigManager.Config.PREFIX);
-		
-		if (usePrefix) {
-			sender.sendMessage(api.format(prefix + " " + plugin.getLocaleManager().getMessage(message), param));
-		}
-		else {
-			sender.sendMessage(api.format(plugin.getLocaleManager().getMessage(message), param));
-		}
-	}
-	
-	/**
 	 * Requests a list of possible completions for a command argument.
 	 *
 	 * @param sender  Source of the command.  For players tab-completing a command inside of a command block, this
@@ -179,10 +159,12 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	@Override
 	public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args)
 	{
+		User user = new User((OfflinePlayer) sender);
+		
 		if (label.equalsIgnoreCase("playerlog") || command.getAliases().contains(label)) {
 			List<String> options = new ArrayList<>();
-			api.addToList(options,"reload", api.hasPermission(sender, Permission.CMD_RELOAD));
-			api.addToList(options,"update", api.hasPermission(sender, Permission.CMD_UPDATE));
+			api.addToList(options,"reload", user.hasPermission(Permission.CMD_RELOAD));
+			api.addToList(options,"update", user.hasPermission(Permission.CMD_UPDATE));
 			return options;
 		}
 		return null;
