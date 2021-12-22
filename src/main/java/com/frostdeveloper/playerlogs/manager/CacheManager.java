@@ -1,7 +1,7 @@
-package com.frostdeveloper.playerlog.manager;
+package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.playerlog.PlayerLog;
+import com.frostdeveloper.playerlogs.PlayerLogs;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * A class used to manage our cache. This mananger includes methods to set, get, and delete cache values.
+ * A class used to manage our cache. This manager includes methods to set, get, and delete cache values.
  *
  * @author OMGitzFROST
  * @since 1.1
@@ -17,7 +17,7 @@ import java.io.IOException;
 public class CacheManager
 {
 	// CLASS INSTANCES
-	private final PlayerLog plugin = PlayerLog.getInstance();
+	private final PlayerLogs plugin = PlayerLogs.getInstance();
 	private final FrostAPI api = plugin.getFrostApi();
 	
 	// CLASS SPECIFIC OBJECTS
@@ -55,7 +55,9 @@ public class CacheManager
 			FileConfiguration config = YamlConfiguration.loadConfiguration(cacheFile);
 			return config.getString(path);
 		}
-		return null;
+		else {
+			return null;
+		}
 	}
 	
 	/**

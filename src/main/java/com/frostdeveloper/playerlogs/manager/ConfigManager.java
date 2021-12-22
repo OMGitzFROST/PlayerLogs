@@ -1,12 +1,14 @@
-package com.frostdeveloper.playerlog.manager;
+package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.playerlog.PlayerLog;
+import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.definition.Config;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
  * A class used to handle our config tasks, this manager will create our file if one
@@ -18,7 +20,7 @@ import java.io.File;
 public class ConfigManager
 {
 	// CLASS INSTANCES
-	private static final PlayerLog plugin = PlayerLog.getInstance();
+	private static final PlayerLogs plugin = PlayerLogs.getInstance();
 	private static final FrostAPI api = plugin.getFrostApi();
 	
 	// CLASS SPECIFIC OBJECTS
@@ -31,7 +33,7 @@ public class ConfigManager
 	 */
 	public void createFile()
 	{
-		verifyConfig();
+		attemptUpdate();
 		
 		if (!configFile.exists()) {
 			plugin.saveResource(configFile.getName(), true);
@@ -47,11 +49,11 @@ public class ConfigManager
 	 *
 	 * @since 1.1
 	 */
-	public void verifyConfig()
+	public void attemptUpdate()
 	{
 		if (configFile.exists()) {
 			float currentVersion = getFloat(Config.VERSION);
-			float latestVersion  = api.toFloat(Config.VERSION.getDefault());
+			float latestVersion  = api.toFloat(Objects.requireNonNull(Config.VERSION.getDefault()));
 			
 			if (latestVersion > currentVersion) {
 				File backupFile = api.toFile("backup/old-config.yml", currentVersion);
@@ -76,7 +78,11 @@ public class ConfigManager
 	public String getString(@NotNull Config path)
 	{
 		FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-		return config.getString(path.getKey()) != null ? config.getString(path.getKey()) : config.getString(path.getDefault());
+		
+		if (config.getString(path.getKey()) != null) {
+			return config.getString(path.getKey());
+		}
+		return config.getString(Objects.requireNonNull(path.getDefault()));
 	}
 	
 	/**
@@ -108,50 +114,4 @@ public class ConfigManager
 	 * @since 1.1
 	 */
 	public float getFloat(Config path)     { return Float.parseFloat(getString(path));     }
-	
-	/*
-	 * ENUM
-	 */
-	
-	/**
-	 * An enum used to define our configuration paths as well as their defaults values
-	 *
-	 * @since 1.0
-	 */
-	public enum Config
-	{
-		VERSION("version", 1.1),
-		LOCALE("locale", "en"),
-		AUTO_UPDATE("auto-update", true),
-		USE_METRICS("use-metrics", true),
-		USE_PREFIX("use-prefix", true),
-		PREFIX("prefix", "&7[&6" + api.getPrefix() +"&7]"),
-		CUSTOM_MESSAGE("custom-message", false),
-		DEBUG_MODE("debug-log", false),
-		
-		MODULARIZE("modularize", false),
-		USE_UUID("use-uuid", true),
-		
-		MODULE_JOIN("modules.join", true),
-		MODULE_QUIT("modules.quit", true),
-		MODULE_CHAT("modules.chat", true),
-		MODULE_CMD("modules.cmd", true),
-		MODULE_DEATH("modules.death", true),
-		MODULE_WORLD("modules.world-change", true),
-		MODULE_BREAK("modules.block-break", true),
-		MODULE_PLACE("modules.block-place", true);
-		
-		private final String key;
-		private final Object def;
-		
-		Config(String key, Object def)
-		{
-			this.key = key;
-			this.def = def;
-		}
-		
-		public String getKey() { return key; }
-		
-		public String getDefault() { return String.valueOf(def); }
-	}
 }

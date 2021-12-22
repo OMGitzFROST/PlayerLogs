@@ -1,7 +1,7 @@
-package com.frostdeveloper.playerlog.manager;
+package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.playerlog.PlayerLog;
+import com.frostdeveloper.playerlogs.PlayerLogs;
 import org.jetbrains.annotations.*;
 
 import java.io.File;
@@ -26,7 +26,7 @@ import java.util.logging.Level;
 public class ReportManager
 {
 	// CLASS INSTANCES
-	private static final PlayerLog plugin = PlayerLog.getInstance();
+	private static final PlayerLogs plugin = PlayerLogs.getInstance();
 	private static final FrostAPI api = plugin.getFrostApi();
 	
 	// CLASS SPECIFIC OBJECTS
@@ -79,7 +79,7 @@ public class ReportManager
 		try {
 			PrintWriter writer = new PrintWriter(report);
 			writer.println("Exception Date: " + getToday());
-			if (!(thrown.getMessage() == null)) {
+			if (thrown.getMessage() != null) {
 				writer.println("Error Message: " + thrown.getMessage());
 			}
 			writer.println("Version: " + plugin.getDescription().getVersion());
