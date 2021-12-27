@@ -4,11 +4,6 @@
 # +----------------------------------------------------+ #
 ##########################################################
 
-# Configuration Versioning is becoming very common among popular server plugins, it is
-# an effective way to make sure developers can implement new features while making
-# also making it painless for server owners to start using. DON'T CHANGE THIS VALUE
-version: 1.2
-
 # Localization is a very fun way to make sure we allow our plugin to speak to you
 # in a language that is familiar to you. We've programmed this feature to automatically
 # detect your language based on your computer and will adjust accordingly.
@@ -59,19 +54,4 @@ modularize: false
 # Keep in mind uuid's are fail proof as players are able to change their names. Though usernames makes searching
 # for player a lot easier.
 use-uuid: true
-
-# This section is used to determine which module should be enabled, we understand that
-# server owner has different uses for this plugin and thus might not require each module.
-# To disable a module set it to 'false', to enable one set it to 'true'.
-modules:
-    join: true
-    quit: true
-    chat: true
-    death: true
-    cmd: true
-    teleport: true
-    enchant: true
-    block-break: true
-    block-place: true
-    world-change: true
     
