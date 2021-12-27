@@ -3,7 +3,7 @@ package com.frostdeveloper.playerlogs;
 import com.frostdeveloper.playerlogs.definition.Permission;
 import com.frostdeveloper.playerlogs.definition.UpdateResult;
 import com.frostdeveloper.playerlogs.manager.UpdateManager;
-import com.frostdeveloper.playerlogs.model.User;
+import com.frostdeveloper.playerlogs.util.Util;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -30,11 +30,11 @@ public class UpdateNotifier implements Listener
 	@EventHandler
 	public void onPlayerJoin(@NotNull PlayerJoinEvent event)
 	{
-		User user = new User(event.getPlayer());
-		Player player = user.getPlayer().getPlayer();
 		
-		if (player != null && user.hasPermission(Permission.CMD_UPDATE, Permission.UPDATE_NOTIFY)){
-			
+		Player player = event.getPlayer();
+		
+		if (Util.hasPermission(player, Permission.CMD_UPDATE, Permission.UPDATE_NOTIFY)){
+
 			if (updater.getResult() == UpdateResult.AVAILABLE) {
 				player.sendMessage("update.result.available");
 			}
