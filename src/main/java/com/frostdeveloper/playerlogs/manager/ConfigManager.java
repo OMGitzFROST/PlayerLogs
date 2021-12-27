@@ -55,16 +55,20 @@ public class ConfigManager
 	}
 	
 	/**
+	 * A method used to reload our configuration file
+	 *
+	 * @since 1.2
+	 */
+	public void reload()                            { yaml.reload();                                            }
+	
+	/**
 	 * A method used to return a string from our configuration
 	 *
 	 * @param path Configuration path
 	 * @return Configuration string
 	 * @since 1.0
 	 */
-	public String getString(@NotNull Config path)
-	{
-		return yaml.getString(path.getKey(), path.getDefault());
-	}
+	public String getString(@NotNull Config path)   { return yaml.getString(path.getKey(), path.getDefault());  }
 	
 	/**
 	 * A method used to return a boolean value from our configuration, it takes a string and parses it into
@@ -74,10 +78,7 @@ public class ConfigManager
 	 * @return Parsed boolean
 	 * @since 1.0
 	 */
-	public boolean getBoolean(@NotNull Config path)
-	{
-		return yaml.getBoolean(path.getKey(), path.getDefault());
-	}
+	public boolean getBoolean(@NotNull Config path) { return yaml.getBoolean(path.getKey(), path.getDefault()); }
 	
 	/**
 	 * A method used to return a double value from our configuration, it takes a string and parses it into
@@ -87,8 +88,5 @@ public class ConfigManager
 	 * @return Parsed double
 	 * @since 1.1
 	 */
-	public double getDouble(@NotNull Config path)
-	{
-		return yaml.getDouble(path.getKey(), path.getDefault());
-	}
+	public double getDouble(@NotNull Config path)   { return yaml.getDouble(path.getKey(), path.getDefault());  }
 }
