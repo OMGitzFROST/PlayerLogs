@@ -14,9 +14,6 @@ import java.io.File;
  */
 public class CacheManager
 {
-	// CLASS INSTANCES
-	private final PlayerLogs plugin = PlayerLogs.getInstance();
-	
 	// CLASS SPECIFIC OBJECTS
 	private final File cacheFile = Util.toFile( ".cache.yml");
 	private final Yaml cache = new Yaml(cacheFile, true);
