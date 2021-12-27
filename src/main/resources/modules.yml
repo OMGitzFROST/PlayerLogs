@@ -77,7 +77,7 @@ world-change-module:
 # This module is used to log when the current ram at a specified time, You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
 # to your liking, PlaceholderAPI is supported for variables.
-ram--module:
+ram-module:
     enabled: true
     cooldown: 30m
     message: "Used: %server_ram_used% | Free: %server_ram_free% | Total: %server_ram_total% | Max: %server_ram_max%"
