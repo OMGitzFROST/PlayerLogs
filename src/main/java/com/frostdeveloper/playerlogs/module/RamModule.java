@@ -75,18 +75,18 @@ public class RamModule extends ModuleManager implements Module, Scheduler
 					cache.setCache(cacheIdentifier, counter);
 				}
 				else {
-					String rawMsg = "Used: %server_ram_used% | Free: %server_ram_free% | Total: %server_ram_total% | Max: %server_ram_max%";
+					String rawMsg = "Used: %server_ram_used% MB | Free: %server_ram_free% MB | Total: %server_ram_total% MB | Max: %server_ram_max% MB";
 					
 					if (getConfig().isList(Config.MODULE_RAM_MSG.getPath())) {
 						List<String> msg = api.stripColor(getConfig().getStringList(message.getPath()));
 						
-						if (msg.contains("DEFAULT")) {
-							printToFile(moduleFile, Placeholder.set(rawMsg));
-							return;
-						}
-						
 						for (String string : msg) {
-							printToFile(moduleFile, Placeholder.set(string));
+							if (string.equalsIgnoreCase("DEFAULT")) {
+								printToFile(moduleFile, Placeholder.set(rawMsg));
+							}
+							else {
+								printToFile(moduleFile, Placeholder.set(string));
+							}
 						}
 					}
 					
