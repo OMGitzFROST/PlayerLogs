@@ -1,14 +1,15 @@
 package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.api.core.Properties;
 import com.frostdeveloper.playerlogs.definition.Config;
+import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.util.Util;
+import org.apache.commons.lang.LocaleUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * A class used to handle all tasks related to our localization.
@@ -24,43 +25,78 @@ public class LocaleManager
 	private final FrostAPI api = plugin.getFrostApi();
 	
 	// CLASS SPECIFIC OBJECTS
-	private final File messageFile = api.toFile(api.format("message_{0}.properties", getLocale()));
-	private final Properties customMap = new Properties();
-	private final Properties defaultMap = new Properties();
-	
-	/*
-	 * TASK HANDLER METHODS
-	 */
+	private final File messageFile = new File(plugin.getDataFolder(), api.format("message_{0}.properties", getLocale()));
+	private final Properties prop = new Properties(true);
+	private final Properties defaultProp = new Properties();
 	
 	/**
-	 * A method used to create a message file if one does not exist.
+	 * This method is used to configure and update our messages if an update is available.
 	 *
-	 * @since 1.0
+	 * @since 1.2
 	 */
-	public void createFile()
+	public void runTask()
 	{
-		if (!messageFile.exists() && config.getBoolean(Config.CUSTOM_MESSAGE)) {
-			InputStream inputStream = plugin.getResource(messageFile.getName());
+		if (config.getBoolean(Config.CUSTOM_MESSAGE)) {
+			defaultProp.load(plugin.getResource(messageFile.getName()));
 			
-			if (inputStream != null) {
-				plugin.saveResource(messageFile.getName(), true);
-				
-				if (messageFile.exists()) {
-					plugin.log("index.create.success", messageFile.getName());
-				}
-				else {
-					plugin.log("index.create.failed", messageFile.getName());
+			// IF OTHER MESSAGE FILES EXIST IN DATA FOLDER, MOVE TO BACKUP FOLDER.
+			if (plugin.getDataFolder().exists()) {
+				for (File currentFile : Objects.requireNonNull(plugin.getDataFolder().listFiles())) {
+					if (currentFile.getName().contains("message") && !currentFile.getName().equals(messageFile.getName())) {
+						
+						File backupFile = Util.toFile("backup/{0}", currentFile.getName());
+						
+						api.createParent(backupFile);
+						api.renameFile(currentFile, backupFile);
+					}
 				}
 			}
-		}
-		else {
-			plugin.log("index.search.success", messageFile.getName());
+			
+			// IF MESSAGE FILE EXISTS IN BACK UP FOLDER MOVE TO DATA FOLDER
+			if (Util.toFile("backup").exists()) {
+				for (File currentFile : Objects.requireNonNull(Util.toFile("backup").listFiles())) {
+					if (currentFile.getName().contains("message") && currentFile.getName().equals(messageFile.getName())) {
+						api.renameFile(currentFile, messageFile);
+					}
+				}
+			}
+			
+			// IF MESSAGE FILE EXISTS, CHECK FOR UPDATES TO MESSAGE FILE
+			if (messageFile.exists()) {
+				prop.load(messageFile);
+				Properties mergedProp = new Properties(prop.isOrdered());
+				
+				for (String propKey : prop.stringPropertyNames()) {
+					for (String defKey : defaultProp.stringPropertyNames()) {
+						
+						// IF DEFAULT CONTAINS CUSTOM KEY ADD TO MERGED MAP
+						if (defaultProp.containsKey(propKey)) {
+							mergedProp.setProperty(propKey, prop.getProperty(propKey));
+						}
+						
+						// IF CUSTOM MAP DOES NOT CONTAIN DEFAULT ADD TO MERGED (UPDATE)
+						if (!prop.containsKey(defKey)) {
+							mergedProp.setProperty(defKey, defaultProp.getProperty(defKey));
+							plugin.log("plugin.message.updated", defKey);
+						}
+					}
+				}
+				if (!mergedProp.isEmpty()) {
+					mergedProp.store(messageFile);
+					mergedProp.clear();
+					prop.load(messageFile);
+				}
+			}
+			
+			// IF ENABLED, CREATE MISSING MESSAGE FILE
+			if (!messageFile.exists()) {
+				if (defaultProp.isEmpty()) {
+					throw new IllegalArgumentException(api.format(getMessage("plugin.locale.invalid"), getLocale()));
+				}
+				plugin.saveResource(messageFile.getName(), true);
+			}
 		}
 	}
-	
-	/*
-	 * GETTER METHODS
-	 */
 	
 	/**
 	 * A method used to return a localized message.
@@ -71,55 +107,15 @@ public class LocaleManager
 	 */
 	public String getMessage(String key)
 	{
-		try {
-			if (getCustomMap().getProperty(key) != null) {
-				return api.format(getCustomMap().getProperty(key));
-			}
-			return key;
+		if (messageFile.exists()) {
+			prop.load(messageFile);
 		}
-		catch (IOException ex) {
-			return null;
-		}
-	}
-	
-	/**
-	 * A method used to return our custom messages. These messages are located in the plugin's data folder. it will
-	 * use the locale defined to return the messages for the specific locale but if they don't exist, we will
-	 * return our default map.
-	 *
-	 * @return Our custom map.
-	 * @throws IOException Thrown if our custom map could not be loaded. Will return default map.
-	 * @since 1.0
-	 */
-	private Properties getCustomMap() throws IOException
-	{
-		try {
-			FileInputStream inputStream = new FileInputStream(messageFile);
-			customMap.load(inputStream);
-			return customMap;
-		}
-		catch (IOException ex) {
-			return getDefaultMap();
-		}
-	}
-	
-	/**
-	 * A method used to return our default messages. These messages are located within the .jar file it will use
-	 * the locale defined to return the messages for the specific locale but if they don't exist, we will default
-	 * to 'en'.
-	 *
-	 * @return Default Messages
-	 * @throws IOException Thrown if default map failed to load.
-	 * @since 1.0
-	 */
-	private Properties getDefaultMap() throws IOException
-	{
-		InputStream inputStream = plugin.getResource(messageFile.getName());
+		defaultProp.load(plugin.getResource(messageFile.getName()));
 		
-		if (inputStream != null) {
-			defaultMap.load(inputStream);
+		if (defaultProp.isEmpty()) {
+			defaultProp.load(plugin.getResource("message_en.properties"));
 		}
-		return defaultMap;
+		return prop.getProperty(key, defaultProp.getProperty(key));
 	}
 	
 	/**
@@ -129,37 +125,8 @@ public class LocaleManager
 	 * @return Server Locale
 	 * @since 1.0
 	 */
-	private String getLocale()
+	public Locale getLocale()
 	{
-		if (verifyLocale(config.getString(Config.LOCALE))) {
-			return config.getString(Config.LOCALE);
-		}
-		return Config.LOCALE.getDefault();
-	}
-	
-	/*
-	 * UTIL METHOD
-	 */
-	
-	/**
-	 * A method used to verify that the included locale exists within our available locales.
-	 *
-	 * @param locale Target Locale
-	 * @return Verification status
-	 * @since 1.0
-	 */
-	public boolean verifyLocale(String locale)
-	{
-		if (locale != null) {
-			String[] splitLocale = locale.split("[-_]");
-			
-			for (String currentSplit : splitLocale) {
-				String fileName = api.format("message_{0}.properties", currentSplit);
-				if (plugin.getResource(fileName) != null) {
-					return true;
-				}
-			}
-		}
-		return false;
+		return LocaleUtils.toLocale(config.getString(Config.LOCALE));
 	}
 }
