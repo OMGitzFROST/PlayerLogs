@@ -6,6 +6,7 @@ prefix: PL
 authors: [ OMGitzFROST ]
 description: A simple plugin used to log player activity
 website: https://www.frostdeveloper.com/project/playerlogs.html
+softdepend: [PlaceholderAPI]
 
 commands:
     playerlog:
