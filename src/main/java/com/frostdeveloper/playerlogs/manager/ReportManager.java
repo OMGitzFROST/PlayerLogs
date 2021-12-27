@@ -2,6 +2,7 @@ package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.util.Util;
 import org.jetbrains.annotations.*;
 
 import java.io.File;
@@ -30,8 +31,8 @@ public class ReportManager
 	private static final FrostAPI api = plugin.getFrostApi();
 	
 	// CLASS SPECIFIC OBJECTS
-	private static final File reportDir = api.toFile("crash-reports");
-	private static final File report = api.toFile("crash-reports/report.txt");
+	private static final File reportDir = Util.toFile("crash-reports");
+	private static final File report = Util.toFile("crash-reports/report.log");
 	
 	/**
 	 * The method used publicly to create our report, it will rename older files to
