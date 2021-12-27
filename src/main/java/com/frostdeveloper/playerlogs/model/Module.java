@@ -37,4 +37,12 @@ public interface Module
 	 */
 	boolean isRegistered();
 	
+	/**
+	 * A method used to return the identifier for a module. The identifier serves as the name of
+	 * the module and additionally can be used to track its timer using the cache manager.
+	 *
+	 * @return Module identifier
+	 * @since 1.0
+	 */
+	String getIdentifier();
 }
