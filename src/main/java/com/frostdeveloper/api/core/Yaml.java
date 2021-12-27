@@ -21,6 +21,8 @@ import java.util.List;
  *
  * @author OMGitzFROST
  * @since 1.0
+ * @deprecated Yaml does not fit our project well, but will remain till a better file type is found.
+ * (MARKED FOR REMOVAL)
  */
 public class Yaml
 {
@@ -156,6 +158,9 @@ public class Yaml
 	 */
 	public void setDefault(String path, Object value)  { setDefault(path, value, false);                           }
 	
+	//
+	public void addDefault(String path, Object value)  { config.addDefault(path, value);                           }
+	
 	/**
 	 * A method used to save our yaml file, If no changes were made, nothing will change.
 	 *
@@ -165,6 +170,23 @@ public class Yaml
 	public void save(File targetFile)
 	{
 		try {
+			config.save(targetFile);
+		}
+		catch (IOException ex) {
+			ex.printStackTrace();
+		}
+	}
+	
+	/**
+	 * A method used to copy our defaults to the specified file.
+	 *
+	 * @param targetFile Target file location
+	 * @since 1.0
+	 */
+	public void saveDefaults(File targetFile)
+	{
+		try {
+			config.options().copyDefaults();
 			config.save(targetFile);
 		}
 		catch (IOException ex) {
@@ -224,6 +246,15 @@ public class Yaml
 	 * @since 1.0
 	 */
 	public boolean exists()                            { return targetFile.exists();                               }
+	
+	/**
+	 * A method used to return an object from our yaml file
+	 *
+	 * @param path Target path.
+	 * @return String object
+	 * @since 1.0
+	 */
+	public Object get(String path)                      { return getConfig().get(path);                            }
 	
 	/**
 	 * A method used to return a string from our yaml file
@@ -326,4 +357,31 @@ public class Yaml
 	 * @since 1.0
 	 */
 	public List<Float> getFloatList(String path)       { return getConfig().getFloatList(path);                    }
+	
+	/**
+	 * A method used to return if a config path is a list
+	 *
+	 * @param path Target path
+	 * @return Whether it's a list or not
+	 * @since 1.0
+	 */
+	public boolean isList(String path)                 { return getConfig().isList(path);                          }
+	
+	/**
+	 * A method used to return if a config path is a boolean
+	 *
+	 * @param path Target path
+	 * @return Whether it's a boolean or not
+	 * @since 1.0
+	 */
+	public boolean isBoolean(String path)              { return getConfig().isBoolean(path);                       }
+	
+	/**
+	 * A method used to return if a config path is a string
+	 *
+	 * @param path Target path
+	 * @return Whether it's a string or not
+	 * @since 1.0
+	 */
+	public boolean isString(String path)               { return getConfig().isString(path);                        }
 }
