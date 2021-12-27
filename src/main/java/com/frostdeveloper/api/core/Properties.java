@@ -224,7 +224,7 @@ public class Properties
 	 * @return The value in the property list.
 	 * @since 1.0
 	 */
-	public String getProperty(String key)    { return prop.getProperty(key); }
+	public String getProperty(String key)    { return prop.getProperty(key);       }
 	
 	/**
 	 * A method used to search for a specific property key inside our property list, If the
