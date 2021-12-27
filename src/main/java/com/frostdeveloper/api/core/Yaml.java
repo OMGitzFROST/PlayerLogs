@@ -21,9 +21,9 @@ import java.util.List;
  *
  * @author OMGitzFROST
  * @since 1.0
- * @deprecated Yaml does not fit our project well, but will remain till a better file type is found.
- * (MARKED FOR REMOVAL)
  */
+@SuppressWarnings ("DeprecatedIsStillUsed")
+@Deprecated
 public class Yaml
 {
 	// API INSTANCE
