@@ -169,7 +169,25 @@ public enum Config
 	 *
 	 * @since 1.1
 	 */
-	MODULE_PLACE_MSG("block-place-module.message");
+	MODULE_PLACE_MSG("block-place-module.message"),
+	/**
+	 * A path to determine if the ram module is enabled.
+	 *
+	 * @since 1.2
+	 */
+	MODULE_RAM_ENABLED("ram-module.enabled"),
+	/**
+	 * A path to the ram modules logged message.
+	 *
+	 * @since 1.2
+	 */
+	MODULE_RAM_MSG("ram-module.message"),
+	/**
+	 * A path to the ram module's cooldown
+	 *
+	 * @since 1.2
+	 */
+	MODULE_RAM_COOLDOWN("ram-module.cooldown");
 	
 	// CLASS SPECIFIC OBJECTS
 	private final String path;
@@ -189,7 +207,7 @@ public enum Config
 	 * @return Desired path.
 	 * @since 1.0
 	 */
-	public String getKey() { return path;     }
+	public String getPath() { return path;     }
 	
 	/**
 	 * This message is designed to search inside our configuration files and retrieve the default
