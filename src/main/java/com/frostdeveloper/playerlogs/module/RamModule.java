@@ -43,10 +43,9 @@ public class RamModule extends ModuleManager implements Module, Scheduler
 	@Override
 	public void start()
 	{
-		String cachedTimer = cache.getCache(cacheIdentifier);
+		String cachedTimer = cache.getCache(cacheIdentifier, 0);
 		
 		task = new BukkitRunnable() {
-			
 			int counter = cachedTimer != null ? Integer.parseInt(cachedTimer) : 0;
 			
 			@Override
@@ -59,6 +58,7 @@ public class RamModule extends ModuleManager implements Module, Scheduler
 					return;
 				}
 				
+				// IF TASK IS NO LONGER REGISTERED, ATTEMPT SHUTDOWN.
 				if (!isRegistered()) {
 					shutdown();
 				}
@@ -140,6 +140,12 @@ public class RamModule extends ModuleManager implements Module, Scheduler
 	 */
 	@Override
 	public boolean isRegistered() { return getRegisteredList().contains(this); }
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 1.2
+	 */
+	public String getIdentifier() { return identifier;                         }
 	
 	/**
 	 * {@inheritDoc}
