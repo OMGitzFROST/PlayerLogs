@@ -191,8 +191,22 @@ public class Properties
 	 */
 	public void setProperty(String key, Object value, boolean replace)
 	{
-		if (getProperty(key) == null || (replace && !getProperty(key).equals(value))) {
+		if (getProperty(key) == null || replace && !getProperty(key).equals(String.valueOf(value))) {
 			prop.setProperty(key, String.valueOf(value));
+		}
+	}
+	
+	/**
+	 * A method used to remove a property from a properties map. Keep in mind this property does not
+	 * save changes by default.
+	 *
+	 * @param key Target key
+	 * @since 1.0
+	 */
+	public void removeProperty(String key)
+	{
+		if (getProperty(key) != null) {
+			prop.remove(key);
 		}
 	}
 	
@@ -210,7 +224,7 @@ public class Properties
 	 * @return The value in the property list.
 	 * @since 1.0
 	 */
-	public String getProperty(String key)    { return prop.getProperty(key, key); }
+	public String getProperty(String key)    { return prop.getProperty(key); }
 	
 	/**
 	 * A method used to search for a specific property key inside our property list, If the
