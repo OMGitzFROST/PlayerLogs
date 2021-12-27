@@ -1,10 +1,7 @@
 package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.core.Yaml;
-import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.util.Util;
-
-import java.io.File;
 
 /**
  * A class used to manage our cache. This mananger includes methods to set, get, and delete cache values.
@@ -15,8 +12,7 @@ import java.io.File;
 public class CacheManager
 {
 	// CLASS SPECIFIC OBJECTS
-	private final File cacheFile = Util.toFile( ".cache.yml");
-	private final Yaml cache = new Yaml(cacheFile, true);
+	private final Yaml cache = new Yaml(Util.toFile( ".cache.yml"), true);
 
 	/**
 	 * A method used to set a cache to a value
