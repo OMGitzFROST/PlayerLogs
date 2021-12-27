@@ -1,7 +1,6 @@
 package com.frostdeveloper.api.core;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.google.common.base.Charsets;
 import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -10,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -114,7 +112,7 @@ public class Yaml
 	 *
 	 * @since 1.0
 	 */
-	public void createFile()                           { createFile(false);                                       }
+	public void createFile()                           { createFile(false);                                        }
 	
 	/**
 	 * A method used to set a path with and assign a value to that path. If the boolean is
@@ -156,7 +154,7 @@ public class Yaml
 	 * @param value Desired value
 	 * @since 1.0
 	 */
-	public void setDefault(String path, Object value)  { setDefault(path, value, false);                          }
+	public void setDefault(String path, Object value)  { setDefault(path, value, false);                           }
 	
 	/**
 	 * A method used to save our yaml file, If no changes were made, nothing will change.
@@ -180,7 +178,7 @@ public class Yaml
 	 * @param path Target path.
 	 * @since 1.0
 	 */
-	public void removeDefault(String path)             { config.set(path, null);                                  }
+	public void removeDefault(String path)             { config.set(path, null);                                   }
 	
 	/**
 	 * A method used to return our yaml map.
@@ -200,18 +198,7 @@ public class Yaml
 	 *
 	 * @since 1.0
 	 */
-	public void reload()
-	{
-		config = YamlConfiguration.loadConfiguration(targetFile);
-		
-		if (!blank) {
-			final InputStream defConfigStream = api.getResource(targetFile.getName());
-			if (defConfigStream == null) {
-				return;
-			}
-			config.setDefaults(YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, Charsets.UTF_8)));
-		}
-	}
+	public void reload()                               { config = YamlConfiguration.loadConfiguration(targetFile); }
 	
 	/**
 	 * This method is used to return the yaml's file name
@@ -219,7 +206,7 @@ public class Yaml
 	 * @return File name
 	 * @since 1.0
 	 */
-	public String getName()                            { return name;                                             }
+	public String getName()                            { return name;                                              }
 	
 	/**
 	 * A method used to return the yaml file object. The file object does not
@@ -228,7 +215,7 @@ public class Yaml
 	 * @return Yaml File Object
 	 * @since 1.0
 	 */
-	public File getFile()                              { return targetFile;                                       }
+	public File getFile()                              { return targetFile;                                        }
 	
 	/**
 	 * A method used to return whether the yaml file exists.
@@ -236,7 +223,7 @@ public class Yaml
 	 * @return Whether file exists.
 	 * @since 1.0
 	 */
-	public boolean exists()                            { return targetFile.exists();                              }
+	public boolean exists()                            { return targetFile.exists();                               }
 	
 	/**
 	 * A method used to return a string from our yaml file
@@ -246,7 +233,7 @@ public class Yaml
 	 * @return String object
 	 * @since 1.0
 	 */
-	public String getString(String path, Object def)   { return getConfig().getString(path, api.toString(def));   }
+	public String getString(String path, Object def)   { return getConfig().getString(path, api.toString(def));    }
 	
 	/**
 	 * A method used to return a string from our yaml file
@@ -255,7 +242,7 @@ public class Yaml
 	 * @return String object
 	 * @since 1.0
 	 */
-	public String getString(String path)               { return getConfig().getString(path);                      }
+	public String getString(String path)               { return getConfig().getString(path);                       }
 	
 	/**
 	 * A method used to return a boolean from our yaml file
@@ -265,7 +252,7 @@ public class Yaml
 	 * @return Boolean object
 	 * @since 1.0
 	 */
-	public boolean getBoolean(String path, Object def) { return getConfig().getBoolean(path, api.toBoolean(def)); }
+	public boolean getBoolean(String path, Object def) { return getConfig().getBoolean(path, api.toBoolean(def));  }
 	
 	/**
 	 * A method used to return a boolean from our yaml file
@@ -274,7 +261,7 @@ public class Yaml
 	 * @return Boolean object
 	 * @since 1.0
 	 */
-	public boolean getBoolean(String path)             { return getConfig().getBoolean(path);                     }
+	public boolean getBoolean(String path)             { return getConfig().getBoolean(path);                      }
 	
 	/**
 	 * A method used to return a double from our yaml file
@@ -284,7 +271,7 @@ public class Yaml
 	 * @return Double object
 	 * @since 1.0
 	 */
-	public double getDouble(String path, Object def)   { return getConfig().getDouble(path, api.toDouble(def));   }
+	public double getDouble(String path, Object def)   { return getConfig().getDouble(path, api.toDouble(def));    }
 	
 	/**
 	 * A method used to return a double from our yaml file
@@ -293,7 +280,7 @@ public class Yaml
 	 * @return Double object
 	 * @since 1.0
 	 */
-	public double getDouble(String path)               { return getConfig().getDouble(path);                      }
+	public double getDouble(String path)               { return getConfig().getDouble(path);                       }
 	
 	/**
 	 * A method used to return a list from our yaml file
@@ -302,7 +289,7 @@ public class Yaml
 	 * @return List object
 	 * @since 1.0
 	 */
-	public List<?> getList(String path)                { return getConfig().getList(path);                        }
+	public List<?> getList(String path)                { return getConfig().getList(path);                         }
 	
 	/**
 	 * A method used to return a string list from our yaml file
@@ -311,7 +298,7 @@ public class Yaml
 	 * @return String list
 	 * @since 1.0
 	 */
-	public List<String> getStringList(String path)     { return getConfig().getStringList(path);                  }
+	public List<String> getStringList(String path)     { return getConfig().getStringList(path);                   }
 	
 	/**
 	 * A method used to return a integer list from our yaml file
@@ -320,7 +307,7 @@ public class Yaml
 	 * @return Integer list
 	 * @since 1.0
 	 */
-	public List<Integer> getIntegerList(String path)   { return getConfig().getIntegerList(path);                 }
+	public List<Integer> getIntegerList(String path)   { return getConfig().getIntegerList(path);                  }
 	
 	/**
 	 * A method used to return a boolean list from our yaml file
@@ -329,7 +316,7 @@ public class Yaml
 	 * @return Boolean list
 	 * @since 1.0
 	 */
-	public List<Boolean> getBooleanList(String path)   { return getConfig().getBooleanList(path);                 }
+	public List<Boolean> getBooleanList(String path)   { return getConfig().getBooleanList(path);                  }
 	
 	/**
 	 * A method used to return a float list from our yaml file
@@ -338,5 +325,5 @@ public class Yaml
 	 * @return Float list
 	 * @since 1.0
 	 */
-	public List<Float> getFloatList(String path)       { return getConfig().getFloatList(path);                   }
+	public List<Float> getFloatList(String path)       { return getConfig().getFloatList(path);                    }
 }
