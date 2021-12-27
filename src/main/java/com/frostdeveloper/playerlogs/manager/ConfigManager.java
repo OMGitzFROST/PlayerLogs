@@ -1,14 +1,14 @@
 package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.FrostAPI;
+import com.frostdeveloper.api.core.Yaml;
 import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.definition.Config;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import com.frostdeveloper.playerlogs.util.Util;
+import com.tchristofferson.configupdater.ConfigUpdater;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.Objects;
+import java.io.IOException;
 
 /**
  * A class used to handle our config tasks, this manager will create our file if one
@@ -24,7 +24,7 @@ public class ConfigManager
 	private static final FrostAPI api = plugin.getFrostApi();
 	
 	// CLASS SPECIFIC OBJECTS
-	private final File configFile = api.toFile("config.yml");
+	private final Yaml yaml = new Yaml(Util.toFile("config.yml"));
 	
 	/**
 	 * A method used to create our configuration file if one does not exist.
@@ -33,15 +33,10 @@ public class ConfigManager
 	 */
 	public void createFile()
 	{
-		attemptUpdate();
-		
-		if (!configFile.exists()) {
-			plugin.saveResource(configFile.getName(), true);
-			plugin.log("index.create.success", configFile.getName());
+		if (yaml.getFile().exists()) {
+			verifyConfig();
 		}
-		else {
-			plugin.log("index.search.success", configFile.getName());
-		}
+		yaml.createFile();
 	}
 	
 	/**
@@ -49,22 +44,13 @@ public class ConfigManager
 	 *
 	 * @since 1.1
 	 */
-	public void attemptUpdate()
+	public void verifyConfig()
 	{
-		if (configFile.exists()) {
-			float currentVersion = getFloat(Config.VERSION);
-			float latestVersion  = api.toFloat(Objects.requireNonNull(Config.VERSION.getDefault()));
-			
-			if (latestVersion > currentVersion) {
-				File backupFile = api.toFile("backup/old-config.yml", currentVersion);
-				
-				api.createParent(backupFile);
-				
-				if (configFile.renameTo(backupFile)) {
-					createFile();
-					plugin.log("index.update.success", configFile.getName());
-				}
-			}
+		try {
+			ConfigUpdater.update(plugin, yaml.getName(), yaml.getFile());
+		}
+		catch (IOException ex) {
+			ReportManager.createReport(getClass(), ex, true);
 		}
 	}
 	
@@ -77,12 +63,7 @@ public class ConfigManager
 	 */
 	public String getString(@NotNull Config path)
 	{
-		FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-		
-		if (config.getString(path.getKey()) != null) {
-			return config.getString(path.getKey());
-		}
-		return config.getString(Objects.requireNonNull(path.getDefault()));
+		return yaml.getString(path.getKey(), path.getDefault());
 	}
 	
 	/**
@@ -93,7 +74,10 @@ public class ConfigManager
 	 * @return Parsed boolean
 	 * @since 1.0
 	 */
-	public boolean getBoolean(Config path) { return Boolean.parseBoolean(getString(path)); }
+	public boolean getBoolean(@NotNull Config path)
+	{
+		return yaml.getBoolean(path.getKey(), path.getDefault());
+	}
 	
 	/**
 	 * A method used to return a double value from our configuration, it takes a string and parses it into
@@ -103,15 +87,8 @@ public class ConfigManager
 	 * @return Parsed double
 	 * @since 1.1
 	 */
-	public double getDouble(Config path)   { return Double.parseDouble(getString(path));   }
-	
-	/**
-	 * A method used to return a Float value from our configuration, it takes a string and parses it into
-	 * a valid boolean.
-	 *
-	 * @param path Configuration Float
-	 * @return Parsed Float
-	 * @since 1.1
-	 */
-	public float getFloat(Config path)     { return Float.parseFloat(getString(path));     }
+	public double getDouble(@NotNull Config path)
+	{
+		return yaml.getDouble(path.getKey(), path.getDefault());
+	}
 }
