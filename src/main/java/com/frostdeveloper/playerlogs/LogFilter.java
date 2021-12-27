@@ -26,7 +26,7 @@ public class LogFilter implements Filter
 	public LogFilter()
 	{
 		PlayerLogs plugin = PlayerLogs.getInstance();
-		this.debug = plugin.getConfigManager().getBoolean(Config.DEBUG_MODE);
+		this.debug = plugin.getConfigManager().getBoolean(Config.DEBUG_MODE) || plugin.isDeveloperMode();
 	}
 	
 	/**
