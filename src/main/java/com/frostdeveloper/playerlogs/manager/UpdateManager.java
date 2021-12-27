@@ -1,9 +1,9 @@
 package com.frostdeveloper.playerlogs.manager;
 
-import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.definition.UpdateResult;
+import com.frostdeveloper.playerlogs.model.Module;
+import com.frostdeveloper.playerlogs.model.Scheduler;
 import com.google.common.base.Charsets;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -24,14 +24,12 @@ import java.nio.file.StandardCopyOption;
  * @author OMGitzFROST
  * @since 1.0
  */
-public class UpdateManager
+public class UpdateManager extends ModuleManager implements Module, Scheduler
 {
 	// CLASS INSTANCES
-	private final PlayerLogs plugin = PlayerLogs.getInstance();
 	private final ConfigManager config = plugin.getConfigManager();
 	private final LocaleManager locale = plugin.getLocaleManager();
-	private final CacheManager cache = new CacheManager();
-	private final FrostAPI api = plugin.getFrostApi();
+	private final CacheManager cache = plugin.getCacheManager();
 	
 	// REQUIRED OBJECTS
 	private final File UPDATE_FOLDER;
@@ -46,6 +44,11 @@ public class UpdateManager
 	
 	// UPDATER OBJECTS
 	private static UpdateResult result;
+	
+	// CLASS SPECIFIC OBJECTS
+	private final String identifier = "update-module";
+	private final String cacheIdentifier = "update-timer";
+	private final Config permission = Config.AUTO_UPDATE;
 	private static BukkitTask task;
 	
 	/**
@@ -62,36 +65,43 @@ public class UpdateManager
 	}
 	
 	/**
-	 * A method used to run our updater task, this method uses a scheduler in order to periodically
-	 * check for new updates.
-	 *
-	 * @since 1.0
+	 * {@inheritDoc}
+	 * @since 1.2
 	 */
-	public void runTask()
+	@Override
+	public void initialize() { start(); }
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 1.2
+	 */
+	@Override
+	public void start()
 	{
-		String cachedTimer = cache.getCache("update-timer");
+		String cachedTimer = cache.getCache(cacheIdentifier) != null ? cache.getCache(cacheIdentifier) : "0";
 		
-		task = new BukkitRunnable() {
-			int counter = cachedTimer != null ? Integer.parseInt(cachedTimer) : 0;
-			final int interval = api.toMinute(30);
+		task  = new BukkitRunnable() {
+			int counter = Integer.parseInt(cachedTimer);
 			
 			@Override
 			public void run() {
+				final int interval = api.toMinute(30);
+				
 				// STOP TASK IN-CASE THE DATA FOLDER IS DELETED
-				if (!plugin.getDataFolder().exists()) {
-					this.cancel();
+				if (!plugin.getDataFolder().exists() || !isRegistered()) {
+					shutdown();
 					return;
 				}
 				
 				// IF COUNTER IS GREATER THAN INTERVAL, DELETE CACHE.
 				if (counter > interval) {
-					cache.deleteCache("update-timer");
+					cache.deleteCache(cacheIdentifier);
 				}
 				
 				// IF COUNTER IS LESS THAN INTERVAL, ADD TO COUNTER AND SET CACHE
 				if (counter < interval) {
 					counter++;
-					cache.setCache("update-timer", counter);
+					cache.setCache(cacheIdentifier, counter);
 				}
 				else {
 					// IF ALL CHECKS PASS, ATTEMPT UPDATE AND RESET CACHE
@@ -99,24 +109,78 @@ public class UpdateManager
 					plugin.log(getMessage());
 					
 					counter = 0;
-					cache.setCache("update-timer", counter);
+					cache.setCache(cacheIdentifier, counter);
 				}
 			}
 		}.runTaskTimer(plugin, 0, 20);
 	}
 	
 	/**
-	 * A method used to stop our updater task, this method will stop the current scheduler, setting it up for a successful
-	 * server state change.
-	 *
-	 * @since 1.1
+	 * {@inheritDoc}
+	 * @since 1.2
 	 */
-	public void stopTask()
+	@Override
+	public void registerModule()
 	{
-		getTask().cancel();
+		addToMaster(this);
 		
-		if (getTask().isCancelled()) {
-			plugin.debug("update.task.disabled");
+		if (config.getBoolean(permission)) {
+			addToRegistry(this);
+		}
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 1.2
+	 */
+	@Override
+	public void shutdown()
+	{
+		cancel();
+		
+		if (isCancelled()) {
+			plugin.debug(getClass(), "module.unload.success", identifier);
+		}
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @return Module registry status
+	 * @since 1.2
+	 */
+	@Override
+	public boolean isRegistered() { return getRegisteredList().contains(this); }
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 1.2
+	 */
+	public String getIdentifier() { return identifier;                         }
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 1.2
+	 */
+	@Override
+	public int getTaskId() { return getRegisteredList().indexOf(this); }
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 1.2
+	 */
+	@Override
+	public boolean isCancelled() { return task == null || task.isCancelled(); }
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 1.2
+	 */
+	@Override
+	public void cancel()
+	{
+		if (task != null) {
+			task.cancel();
 		}
 	}
 	
@@ -302,13 +366,4 @@ public class UpdateManager
 	 * @since 1.1
 	 */
 	public String getRepo() { return REPO; }
-	
-	/**
-	 * A method used to return an instance of our updater task. This allows us to modify our task.
-	 *
-	 * @return Our updater task.
-	 * @since 1.0
-	 */
-	public BukkitTask getTask() { return task; }
-	
 }
