@@ -77,7 +77,7 @@ public class LocaleManager
 						// IF CUSTOM MAP DOES NOT CONTAIN DEFAULT ADD TO MERGED (UPDATE)
 						if (!prop.containsKey(defKey)) {
 							mergedProp.setProperty(defKey, defaultProp.getProperty(defKey));
-							plugin.log("plugin.message.updated", defKey);
+							plugin.debug(getClass(), "plugin.translation.added", defKey);
 						}
 					}
 				}
