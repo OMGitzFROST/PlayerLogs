@@ -1,7 +1,6 @@
-package com.frostdeveloper.playerlog.util;
+package com.frostdeveloper.playerlogs;
 
-import com.frostdeveloper.playerlog.PlayerLog;
-import com.frostdeveloper.playerlog.manager.ConfigManager;
+import com.frostdeveloper.playerlogs.definition.Config;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Filter;
@@ -26,8 +25,8 @@ public class LogFilter implements Filter
 	 */
 	public LogFilter()
 	{
-		PlayerLog plugin = PlayerLog.getInstance();
-		this.debug = plugin.getConfigManager().getBoolean(ConfigManager.Config.DEBUG_MODE);
+		PlayerLogs plugin = PlayerLogs.getInstance();
+		this.debug = plugin.getConfigManager().getBoolean(Config.DEBUG_MODE);
 	}
 	
 	/**
