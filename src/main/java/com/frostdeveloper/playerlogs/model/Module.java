@@ -1,7 +1,5 @@
 package com.frostdeveloper.playerlogs.model;
 
-import java.io.IOException;
-
 /**
  * An interface used to define the required classes needed in-order for a module to work.
  *
@@ -11,19 +9,25 @@ import java.io.IOException;
 public interface Module
 {
 	/**
-	 * If granted permission, it will execute all required tasks inorder to register the module.
+	 * A method is called once the module is registered, and initializes the assigned arithmetic.
 	 *
-	 * @throws IOException Thrown if the module file could not be created.
 	 * @since 1.2
 	 */
-	void registerModule() throws IOException;
+	void initialize();
 	
 	/**
-	 * A method used to unload a module from the registry.
+	 * A method called when reloading or server shutdown
 	 *
 	 * @since 1.2
 	 */
-	void removeModule();
+	void shutdown();
+	
+	/**
+	 * If granted permission, it will execute all required tasks inorder to register the module.
+	 *
+	 * @since 1.2
+	 */
+	void registerModule();
 	
 	/**
 	 * A method used to determine whether a module is registered.
@@ -32,4 +36,5 @@ public interface Module
 	 * @since 1.2
 	 */
 	boolean isRegistered();
+	
 }
