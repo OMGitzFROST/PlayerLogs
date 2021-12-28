@@ -103,13 +103,13 @@ public class Properties
 	 */
 	public void store(@NotNull File targetFile)
 	{
-		try(FileOutputStream outputStream = new FileOutputStream(targetFile)) {
-			if (targetFile.getParentFile().exists() || targetFile.getParentFile().mkdirs()) {
+		if (targetFile.getParentFile().exists() || targetFile.getParentFile().mkdirs()) {
+			try (FileOutputStream outputStream = new FileOutputStream(targetFile)) {
 				prop.store(outputStream, null);
 			}
-		}
-		catch (IOException ex) {
-			ex.printStackTrace();
+			catch(IOException ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 	
