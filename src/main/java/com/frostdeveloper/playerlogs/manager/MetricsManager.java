@@ -95,6 +95,9 @@ public class MetricsManager extends ModuleManager implements Module, Scheduler
 		if (config.getBoolean(permission)) {
 			addToRegistry(this);
 		}
+		else {
+			plugin.debug(getClass(), "metrics.collect.disabled");
+		}
 	}
 	
 	/**
