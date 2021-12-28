@@ -25,7 +25,7 @@ public class LocaleManager
 	private final FrostAPI api = plugin.getFrostApi();
 	
 	// CLASS SPECIFIC OBJECTS
-	private final File messageFile = new File(plugin.getDataFolder(), api.format("message_{0}.properties", getLocale()));
+	private final File messageFile = Util.toFile(api.format("message_{0}.properties", getLocale()));
 	private final Properties prop = new Properties(true);
 	private final Properties defaultProp = new Properties();
 	
@@ -125,8 +125,5 @@ public class LocaleManager
 	 * @return Server Locale
 	 * @since 1.0
 	 */
-	public Locale getLocale()
-	{
-		return LocaleUtils.toLocale(config.getString(Config.LOCALE));
-	}
+	public Locale getLocale() { return LocaleUtils.toLocale(config.getString(Config.LOCALE)); }
 }
