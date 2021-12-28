@@ -1,16 +1,12 @@
 package com.frostdeveloper.playerlogs.manager;
 
-import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.api.core.Properties;
-import com.frostdeveloper.api.core.Yaml;
-import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.util.Util;
-import org.bukkit.entity.Player;
 
 import java.io.File;
 
 /**
- * A class used to manage our cache. This mananger includes methods to set, get, and delete cache values.
+ * A class used to manage our cache. This manager includes methods to set, get, and delete cache values.
  *
  * @author OMGitzFROST
  * @since 1.1
@@ -19,7 +15,7 @@ public class CacheManager
 {
 	// CLASS SPECIFIC OBJECTS
 	private final Properties cache = new Properties(true);
-	private final File cacheFile   = Util.toFile(".cache.properties");
+	private final File cacheFile   = Util.toFile(".temp/.cache.log");
 
 	/**
 	 * A method used to set a cache to a value
@@ -64,7 +60,7 @@ public class CacheManager
 	 * @return Cached value
 	 * @since 1.2
 	 */
-	public String getCache(String path)             { return getCache().getProperty(path); }
+	public String getCache(String path)             { return getCache().getProperty(path);      }
 
 	/**
 	 * A method used to delete a cache path, in other words, used to reset its value.
