@@ -81,3 +81,5 @@ ram-module:
     enabled: true
     cooldown: 30m
     message: "Used: %server_ram_used% | Free: %server_ram_free% | Total: %server_ram_total% | Max: %server_ram_max%"
+    
+    
