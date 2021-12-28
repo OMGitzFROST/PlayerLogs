@@ -38,10 +38,14 @@ public class ModuleManager
 	public void runTask()
 	{
 		try {
-			if (yaml.getFile().exists()) {
-				ConfigUpdater.update(plugin, yaml.getName(), Util.toFile(yaml.getName()));
+			if (!yaml.getFile().exists()) {
+				yaml.createFile();
+				plugin.log("index.create.success", yaml.getName());
 			}
-			yaml.createFile();
+			else {
+				ConfigUpdater.update(plugin, yaml.getName(), Util.toFile(yaml.getName()));
+				plugin.log("index.search.success", yaml.getName());
+			}
 			
 			new BukkitRunnable() {
 				
