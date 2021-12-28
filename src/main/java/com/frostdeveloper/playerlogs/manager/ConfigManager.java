@@ -31,12 +31,14 @@ public class ConfigManager
 	 *
 	 * @since 1.0
 	 */
-	public void createFile()
+	public void runTask()
 	{
-		if (yaml.getFile().exists()) {
-			verifyConfig();
+		if (!yaml.getFile().exists()) {
+			yaml.createFile();
+			plugin.log("index.create.success", yaml.getName());
 		}
-		yaml.createFile();
+		plugin.log("index.search.success", yaml.getName());
+		verifyConfig();
 	}
 	
 	/**
