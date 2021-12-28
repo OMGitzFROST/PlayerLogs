@@ -46,10 +46,6 @@ public final class FrostAPI
 	{
 		if (path.contains("/")) {
 			String[] splitPath = path.split("/");
-			
-			if (splitPath[0].equalsIgnoreCase("Plugins")) {
-				return new File(getPluginFolder() + File.separator, splitPath[1]);
-			}
 			return new File(plugin.getDataFolder() + File.separator + splitPath[0], splitPath[1]);
 		}
 		return new File(plugin.getDataFolder(), path);
@@ -76,13 +72,6 @@ public final class FrostAPI
 	/*
 	 * INDEX TYPE METHODS
 	 */
-	
-	public void renameFile(@NotNull File oldFile, File newFile)
-	{
-		if (oldFile.exists() && !oldFile.renameTo(newFile)) {
-			throw new IllegalArgumentException("Failed to rename file!");
-		}
-	}
 	
 	/**
 	 * A method used to return whether a string is a valid directory
