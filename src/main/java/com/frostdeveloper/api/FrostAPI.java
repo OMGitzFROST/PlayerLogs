@@ -1,16 +1,17 @@
 package com.frostdeveloper.api;
 
-import com.frostdeveloper.playerlog.util.Permission;
 import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A class used to house redundant methods used across multiple projects, this plugin is designed to make development
@@ -21,57 +22,52 @@ import java.util.List;
  */
 public final class FrostAPI
 {
-	// CLASS SPECIFIC OBJECTS
-	private final Plugin plugin;
-	
 	/**
-	 * A constructor for the FrostAPI class
+	 * A method used to return an instance of this api class
 	 *
-	 * @param plugin Instance of the main plugin
+	 * @return API instance
 	 * @since 1.0
 	 */
-	public FrostAPI(Plugin plugin) { this.plugin = plugin; }
+	@Contract (value = " -> new", pure = true)
+	public static @NotNull FrostAPI getInstance() { return new FrostAPI(); }
 	
 	/**
-	 * A method used to return a file object from a path. If the path contains a '/' char
-	 * It will separate the root from the file name. If the char is not specified it will
-	 * assume the path is the file name and define the root for you and use the path as the name.
+	 * A method used to return a resource from a string name as an input stream
 	 *
-	 * @param path Target Path
-	 * @return A path as a file.
+	 * @param name Resource name
+	 * @return InputStream
 	 * @since 1.0
 	 */
-	@Contract ("_ -> new")
-	public @NotNull File toFile(@NotNull String path)
+	public InputStream getResource(String name)
 	{
-		if (path.contains("/")) {
-			String[] splitPath = path.split("/");
-			return new File(plugin.getDataFolder() + File.separator + splitPath[0], splitPath[1]);
-		}
-		return new File(plugin.getDataFolder(), path);
+		return this.getClass().getClassLoader().getResourceAsStream(name);
 	}
 	
 	/**
-	 * A method used to create a file object. The optional parameters is used to include a parameter into file path
+	 * Returns an input stream as an url
 	 *
-	 * @param path String path
-	 * @param param Optional Parameters
-	 * @return File object
+	 * @param name Resource name
+	 * @return Resource URL
 	 * @since 1.0
 	 */
-	@Contract ("_, _ -> new")
-	public @NotNull File toFile(@NotNull String path, Object... param)
+	public URL getResourceURL(String name)
 	{
-		if (path.contains("/")) {
-			String[] splitPath = path.split("/");
-			return new File(plugin.getDataFolder() + File.separator + splitPath[0], format(splitPath[1], param));
-		}
-		return new File(plugin.getDataFolder(), format(path, param));
+		return this.getClass().getClassLoader().getResource(name);
 	}
 	
-	/*
-	 * INDEX TYPE METHODS
+	/**
+	 * A method used to rename files.
+	 *
+	 * @param oldFile Previous file/ location
+	 * @param newFile New file/ location
+	 * @since 1.0
 	 */
+	public void renameFile(@NotNull File oldFile, File newFile)
+	{
+		if (oldFile.exists() && !oldFile.renameTo(newFile)) {
+			throw new IllegalArgumentException("Failed to rename file!");
+		}
+	}
 	
 	/**
 	 * A method used to return whether a string is a valid directory
@@ -93,10 +89,7 @@ public final class FrostAPI
 	 * @return Whether the index is a file.
 	 * @since 1.0
 	 */
-	public boolean isDirectory(@NotNull File index)
-	{
-		return isDirectory(index.getPath());
-	}
+	public boolean isDirectory(@NotNull File index) { return isDirectory(index.getPath()); }
 	
 	/**
 	 * A method used to return whether a string is a valid file.
@@ -118,10 +111,7 @@ public final class FrostAPI
 	 * @return Whether the index is a file.
 	 * @since 1.0
 	 */
-	public boolean isFile(@NotNull File index)
-	{
-		return isFile(index.getPath());
-	}
+	public boolean isFile(@NotNull File index) { return isFile(index.getPath()); }
 	
 	/*
 	 * INDEX MAKERS
@@ -148,18 +138,8 @@ public final class FrostAPI
 	 * @return Parent file
 	 * @since 1.0
 	 */
-	public File getParent(@NotNull File targetFile)
-	{
-		return targetFile.getParentFile();
-	}
+	public File getParent(@NotNull File targetFile) { return targetFile.getParentFile(); }
 	
-	/**
-	 * A method used to return the server's plugin folder
-	 *
-	 * @return Plugin's Folder
-	 * @since 1.0
-	 */
-	public File getPluginFolder() { return plugin.getDataFolder().getParentFile(); }
 	
 	/*
 	 * FORMATTERS
@@ -203,7 +183,7 @@ public final class FrostAPI
 	 * @return Colorless output.
 	 * @since 1.1
 	 */
-	public @NotNull String stripColor(@NotNull String input)
+	public @NotNull String  stripColor(String input)
 	{
 		input = input.replaceAll("§", "&");
 		
@@ -231,6 +211,24 @@ public final class FrostAPI
 		return input;
 	}
 	
+	/**
+	 * A method used to remove color codes from any given string list this method
+	 * will iterate through the list and individually remove color codes.
+	 *
+	 * @param list Target list
+	 * @return Colorless list.
+	 * @since 1.0
+	 */
+	public @NotNull List<String> stripColor(@NotNull List<String> list)
+	{
+		List<String> nonColoredList = new ArrayList<>();
+		
+		for (String string : list) {
+			nonColoredList.add(stripColor(string));
+		}
+		return nonColoredList;
+	}
+	
 	/*
 	 * TIME
 	 */
@@ -255,7 +253,7 @@ public final class FrostAPI
 	 * @return Delay in seconds
 	 * @since 1.1
 	 */
-	public int toSecond(int amount) { return amount; }
+	public int toSecond(Object amount) { return toInt(amount); }
 	
 	/**
 	 * A method used in a runnable. It's used to return the amount of time required to complete the delay in minutes
@@ -264,7 +262,7 @@ public final class FrostAPI
 	 * @return Delay in minutes
 	 * @since 1.1
 	 */
-	public int toMinute(int amount) { return toSecond(60) * amount; }
+	public int toMinute(Object amount) { return toSecond(60) * toInt(amount); }
 	
 	/**
 	 * A method used in a runnable. It's used to return the amount of time required to complete the delay in hours
@@ -273,7 +271,7 @@ public final class FrostAPI
 	 * @return Delay in hours
 	 * @since 1.1
 	 */
-	public int toHour(int amount)   { return toMinute(60) * amount; }
+	public int toHour(Object amount)   { return toMinute(60) * toInt(amount); }
 	
 	/**
 	 * A method used in a runnable. It's used to return the amount of time required to complete the delay in days
@@ -282,15 +280,49 @@ public final class FrostAPI
 	 * @return Delay in days
 	 * @since 1.1
 	 */
-	public int toDay(int amount)    { return toHour(24) * amount;   }
+	public int toDay(Object amount)    { return toHour(24) * toInt(amount);   }
 	
-	/*
-	 * PLAYER METHODS
+	/**
+	 * A method used to turn a string into a valid time, and calculate the amount required.
+	 *
+	 * @param input String input
+	 * @return Requested duration
+	 * @since 1.0
 	 */
-	
-	/*
-	 * OBJECT FORMATS
-	 */
+	public int convertToTime(String input)
+	{
+		input = input.toLowerCase();
+		String[] description = {"s","m","h","d","y","second","minute","hour","day","year","seconds","minutes","hours","days","years"};
+		String identifier = null;
+		int time = -1;
+		
+		for (String s : description) {
+			if (input.contains(s)) {
+				identifier = s;
+				time = toInt(input.replace(" ", "").split(identifier)[0]);
+			}
+		}
+		
+		switch (Objects.requireNonNull(identifier)){
+			case "s":
+			case "second":
+			case "seconds":
+				return toSecond(time);
+			case "m":
+			case "minute":
+			case "minutes":
+				return toMinute(time);
+			case "h":
+			case "hour":
+			case "hours":
+				return toHour(time);
+			case "d":
+			case "day":
+			case "days":
+				return toDay(time);
+		}
+		throw new IllegalArgumentException("Invalid time: " + input);
+	}
 	
 	/**
 	 * A method used to return an object as a string
@@ -336,80 +368,6 @@ public final class FrostAPI
 	 * @since 1.0
 	 */
 	public boolean toBoolean(@NotNull Object obj) { return Boolean.parseBoolean(toString(obj)); }
-	
-	/**
-	 * A method used tp determine whether a command sender is permitted any of the listed
-	 * permissions, if any is permitted, it will return true.
-	 *
-	 * @param sender Command sender
-	 * @param perm Target permission
-	 * @return Permission status
-	 * @since 1.1
-	 */
-	public boolean hasPermission(@NotNull CommandSender sender, @NotNull Permission perm)
-	{
-		return sender.hasPermission(Permission.ALL.getPerm()) || sender.hasPermission(perm.getPerm());
-	}
-	
-	/**
-	 * A method used tp determine whether a command sender is permitted any of the listed
-	 * permissions, if any is permitted, it will return true.
-	 *
-	 * @param sender Command sender
-	 * @param perms List of perms
-	 * @return Permission status
-	 * @since 1.1
-	 */
-	public boolean hasPermission(CommandSender sender, Permission @NotNull ... perms)
-	{
-		boolean isPermitted = false;
-		
-		for (Permission perm : perms) {
-			if (hasPermission(sender, perm)) {
-				isPermitted = true;
-			}
-		}
-		return isPermitted;
-	}
-	
-	/*
-	 * PLUGIN DESCRIPTION
-	 */
-	
-	/**
-	 * A method used to return a plugin's name located inside the plugin.yml file
-	 *
-	 * @return Plugin name
-	 * @since 1.1
-	 */
-	public @NotNull String getName() { return plugin.getDescription().getName(); }
-	
-	/**
-	 * A method used to return a plugin's full name created using the plugin.yml file
-	 *
-	 * @return Plugin full name
-	 * @since 1.1
-	 */
-	public @NotNull String getFullName() { return plugin.getDescription().getFullName(); }
-	
-	/**
-	 * A method used to return a plugin's version located inside the plugin.yml file
-	 *
-	 * @return Plugin version
-	 * @since 1.1
-	 */
-	public @NotNull String getVersion() { return plugin.getDescription().getVersion(); }
-	
-	/**
-	 * A method used to return a plugin's prefix located inside the plugin.yml file
-	 *
-	 * @return Plugin prefix
-	 * @since 1.1
-	 */
-	public String getPrefix()
-	{
-		return plugin.getDescription().getPrefix() != null ? plugin.getDescription().getPrefix() : "";
-	}
 	
 	/*
 	 * UTILITY METHODS
