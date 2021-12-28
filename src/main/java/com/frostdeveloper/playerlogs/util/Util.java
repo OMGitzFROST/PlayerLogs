@@ -60,6 +60,20 @@ public class Util
 		return new File(plugin.getDataFolder(), api.format(path, param));
 	}
 	
+	/**
+	 * A method used to create a file object. The optional parameters is used to include a parameter into file path
+	 *
+	 * @param parent Parent Directory
+	 * @param name File Name
+	 * @param param Optional Parameters
+	 * @return File object
+	 * @since 1.2
+	 */
+	public static @NotNull File toFile(File parent, String name, Object... param)
+	{
+		return new File(parent, api.format(name, param));
+	}
+	
 	
 	/**
 	 * A method used tp determine whether a command sender is permitted any of the listed
