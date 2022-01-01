@@ -21,7 +21,7 @@ public class Util
 {
 	// CLASS INSTANCES
 	private static final PlayerLogs plugin = PlayerLogs.getInstance();
-	private static final FrostAPI api = plugin.getFrostApi();
+	private static final FrostAPI api = plugin.getFrostAPI();
 	
 	/**
 	 * A method used to return a file object from a path. If the path contains a '/' char
@@ -72,41 +72,5 @@ public class Util
 	public static @NotNull File toFile(File parent, String name, Object... param)
 	{
 		return new File(parent, api.format(name, param));
-	}
-	
-	
-	/**
-	 * A method used tp determine whether a command sender is permitted any of the listed
-	 * permissions, if any is permitted, it will return true.
-	 *
-	 * @param sender Command sender
-	 * @param perm Target permission
-	 * @return Permission status
-	 * @since 1.1
-	 */
-	public static boolean hasPermission(@NotNull CommandSender sender, @NotNull Permission perm)
-	{
-		return sender.hasPermission(Permission.ALL.getPerm()) || sender.hasPermission(perm.getPerm());
-	}
-	
-	/**
-	 * A method used tp determine whether a command sender is permitted any of the listed
-	 * permissions, if any is permitted, it will return true.
-	 *
-	 * @param sender Command sender
-	 * @param perms List of perms
-	 * @return Permission status
-	 * @since 1.1
-	 */
-	public static boolean hasPermission(CommandSender sender, Permission @NotNull ... perms)
-	{
-		boolean isPermitted = false;
-		
-		for (Permission perm : perms) {
-			if (hasPermission(sender, perm)) {
-				isPermitted = true;
-			}
-		}
-		return isPermitted;
 	}
 }
