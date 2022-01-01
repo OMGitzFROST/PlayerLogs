@@ -1,3 +1,20 @@
+
+###########################################################
+# +-----------------------------------------------------+ #
+# |                   MODULE SETTINGS                   | #
+# +-----------------------------------------------------+ #
+###########################################################
+
+# This setting is used to determine whether all activity should be separated based
+# on activity types. If enabled we will log separate files for each module, if disabled
+# we will log all activity into one convenient file.
+modularize: false
+
+# This setting allows our plugin to use player names instead of uuids for creating activity indexes, Keep in mind
+# Keep in mind uuid's are fail proof as players are able to change their names. Though usernames makes searching
+# for player a lot easier.
+use-uuid: true
+
 ###########################################################
 # +-----------------------------------------------------+ #
 # |                       MODULES                       | #
