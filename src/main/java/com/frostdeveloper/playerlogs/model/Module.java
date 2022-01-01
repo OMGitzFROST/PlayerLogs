@@ -1,5 +1,7 @@
 package com.frostdeveloper.playerlogs.model;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * An interface used to define the required classes needed in-order for a module to work.
  *
@@ -16,14 +18,8 @@ public interface Module
 	void initialize();
 	
 	/**
-	 * A method called when reloading or server shutdown
-	 *
-	 * @since 1.2
-	 */
-	void shutdown();
-	
-	/**
-	 * If granted permission, it will execute all required tasks inorder to register the module.
+	 * If granted permission, This method will add our module to our module list and
+	 * will determine if the module should be initialized.
 	 *
 	 * @since 1.2
 	 */
@@ -44,5 +40,5 @@ public interface Module
 	 * @return Module identifier
 	 * @since 1.0
 	 */
-	String getIdentifier();
+	@NotNull String getIdentifier();
 }
