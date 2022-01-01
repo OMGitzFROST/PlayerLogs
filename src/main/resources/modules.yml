@@ -97,6 +97,6 @@ world-change-module:
 ram-module:
     enabled: true
     cooldown: 30m
-    message: "Used: %server_ram_used% | Free: %server_ram_free% | Total: %server_ram_total% | Max: %server_ram_max%"
+    message: "Used: %server_ram_used% MB | Free: %server_ram_free% MB | Total: %server_ram_total% MB | Max: %server_ram_max% MB"
     
     
