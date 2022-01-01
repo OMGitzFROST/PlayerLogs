@@ -17,7 +17,7 @@ import java.io.PrintWriter;
 public class Report
 {
 	// CLASS INSTANCES
-	private final FrostAPI api = FrostAPI.getInstance();
+	private static final FrostAPI api = FrostAPI.getInstance();
 	
 	// CLASS SPECIFIC OBJECTS
 	private static File targetFile;
@@ -33,7 +33,7 @@ public class Report
 	 * @param silent Determine whether a stacktrace should be printed to the console.
 	 * @since 1.0
 	 */
-	public void create(@NotNull Class<?> clazz, @NotNull Throwable thrown, boolean silent)
+	public static void create(@NotNull Class<?> clazz, @NotNull Throwable thrown, boolean silent)
 	{
 		try {
 			if (targetFile == null) {
