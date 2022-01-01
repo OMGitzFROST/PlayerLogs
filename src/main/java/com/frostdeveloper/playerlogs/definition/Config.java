@@ -189,6 +189,10 @@ public enum Config
 	 */
 	MODULE_RAM_COOLDOWN("ram-module.cooldown");
 	
+	/*
+	 * --------------------------------------------------------------
+	 */
+	
 	// CLASS SPECIFIC OBJECTS
 	private final String path;
 	
