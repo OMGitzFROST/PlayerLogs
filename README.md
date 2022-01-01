@@ -1,4 +1,4 @@
-<pre><br class="Apple-interchange-newline"/>
+<br class="Apple-interchange-newline"/>
 <h1 align="center">
   PlayerLogs
 </h1>
@@ -63,5 +63,3 @@ page. If you can't make a donation, don't worry! There are lots of other ways to
   | GitHub - <a href="https://github.com/omgitzfrost">@omgitzfrost</a>  · 
   | Twitter - <a href="https://twitter.com/omgitzfrost">@omgitzfrost</a> |
 </h6>
-
-</pre>
