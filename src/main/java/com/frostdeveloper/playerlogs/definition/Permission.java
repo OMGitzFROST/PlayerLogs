@@ -64,7 +64,7 @@ public enum Permission
 	 *
 	 * @since 1.2
 	 */
-	public static void verifyPerms()
+	public static void initVerification()
 	{
 		boolean errorFound = false;
 		
