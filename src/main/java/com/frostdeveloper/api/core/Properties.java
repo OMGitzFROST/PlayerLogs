@@ -123,7 +123,7 @@ public class Properties
 	 * @param targetFile File being read.
 	 * @since 1.0
 	 */
-	public synchronized void load(@NotNull File targetFile)
+	public void load(@NotNull File targetFile)
 	{
 		try {
 			FileInputStream inputStream = new FileInputStream(targetFile);
@@ -144,7 +144,7 @@ public class Properties
 	 * @param inputStream The input stream
 	 * @since 1.0
 	 */
-	public synchronized void load(InputStream inputStream)
+	public void load(InputStream inputStream)
 	{
 		try {
 			prop.load(inputStream);
