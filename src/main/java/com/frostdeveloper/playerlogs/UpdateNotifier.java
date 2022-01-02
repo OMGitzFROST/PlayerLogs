@@ -33,7 +33,7 @@ public class UpdateNotifier implements Listener
 		
 		Player player = event.getPlayer();
 		
-		if (Util.hasPermission(player, Permission.CMD_UPDATE, Permission.UPDATE_NOTIFY)){
+		if (Permission.isPermitted(player, Permission.CMD_UPDATE)) {
 
 			if (updater.getResult() == UpdateResult.AVAILABLE) {
 				player.sendMessage("update.result.available");
