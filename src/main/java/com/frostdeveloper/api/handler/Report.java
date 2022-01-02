@@ -2,11 +2,19 @@ package com.frostdeveloper.api.handler;
 
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.api.exceptions.UndefinedFileException;
+import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * A class used to handle our exception sand create a report when the exception is caught.
@@ -20,8 +28,36 @@ public class Report
 	private static final FrostAPI api = FrostAPI.getInstance();
 	
 	// CLASS SPECIFIC OBJECTS
-	private static File targetFile;
-	private static String version;
+	private final File targetFile;
+	private final String version;
+	
+	/**
+	 * A class constructor used to that only takes a file parameter to define
+	 * the output directory, and a string parameter to define the current version
+	 * in which the exception was caught.
+	 *
+	 * @param output Output directory.
+	 * @param version Project version
+	 * @since 1.2
+	 */
+	public Report(File output, String version)
+	{
+		this.targetFile = output;
+		this.version    = version;
+	}
+	
+	/**
+	 * A class constructor used to that only takes a file parameter to define
+	 * the output directory.
+	 *
+	 * @param output Output directory.
+	 * @since 1.2
+	 */
+	public Report(File output)
+	{
+		this.targetFile = output;
+		this.version    = null;
+	}
 	
 	/**
 	 * This method is used to create our report in the defined output location, if an output
@@ -33,32 +69,40 @@ public class Report
 	 * @param silent Determine whether a stacktrace should be printed to the console.
 	 * @since 1.0
 	 */
-	public static void create(@NotNull Class<?> clazz, @NotNull Throwable thrown, boolean silent)
+	public void create(@NotNull Class<?> clazz, @NotNull Throwable thrown, boolean silent)
+	{
+		Validate.notNull(targetFile, "Please define an output location");
+		api.createParent(targetFile);
+		api.renameFile(targetFile, new File(targetFile.getParentFile(), getCreated(targetFile)));
+		
+		printToWriter(targetFile, "Exception Date: " + api.getTimeNow());
+		printToWriter(thrown.getMessage() != null, targetFile, "Error Message: " + thrown.getMessage());
+		printToWriter(version != null, targetFile, "Version: " + version);
+		printToWriter(targetFile, "Fault: " + clazz.getSimpleName());
+		printToWriter(targetFile, "At Line: " + thrown.getStackTrace()[0].getLineNumber());
+		printToWriter(targetFile, "");
+		printToWriter(targetFile, thrown.getStackTrace());
+		
+		if (!silent) {
+			thrown.printStackTrace();
+		}
+	}
+	
+	/**
+	 * A method used to print a message to a file.
+	 *
+	 * @param targetFile Output file
+	 * @param message Target message
+	 * @param param Optional parameters
+	 * @since 1.2
+	 */
+	public void printToWriter(File targetFile, Object message, Object... param)
 	{
 		try {
-			if (targetFile == null) {
-				throw new UndefinedFileException("Please define an output location");
-			}
-			
-			String className = clazz.getSimpleName();
-			
-			PrintWriter printer = new PrintWriter(targetFile);
-			printer.println("Exception Date: " + api.getTimeNow());
-			
-			if (thrown.getMessage() != null) printer.println("Error Message: " + thrown.getMessage());
-			if (version != null) printer.println("Version: " + version);
-			
-			printer.println("Fault: " + className);
-			printer.println("At Line: " + thrown.getStackTrace()[0].getLineNumber());
-			printer.println("");
-			thrown.printStackTrace(printer);
-			
-			api.createParent(targetFile);
+			FileWriter writer   = new FileWriter(targetFile, true);
+			PrintWriter printer = new PrintWriter(writer);
+			printer.println(api.format(String.valueOf(message), param));
 			printer.close();
-			
-			if (!silent) {
-				thrown.printStackTrace();
-			}
 		}
 		catch (IOException ex) {
 			ex.printStackTrace();
@@ -66,23 +110,52 @@ public class Report
 	}
 	
 	/**
-	 * This method is used to define the log files output directory, in which directory should the file
-	 * be created?
+	 * A method used to print a message to a file if a condition is met.
 	 *
-	 * @implNote This method needs to be executed before creating our report.
-	 *
-	 * @param targetFile Target output
-	 * @since 1.0
+	 * @param condition Required condition
+	 * @param targetFile Output file
+	 * @param message Target message
+	 * @param param Optional parameters
+	 * @since 1.2
 	 */
-	public void setOutputLocation(File targetFile) { Report.targetFile = targetFile; }
+	public void printToWriter(boolean condition, File targetFile, String message, Object... param)
+	{
+		if (condition) {
+			try {
+				PrintWriter printer = new PrintWriter(targetFile);
+				printer.println(api.format(message, param));
+				printer.close();
+			}
+			catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+	}
 	
 	/**
-	 * A method used to define the projects current version once an error is caught, this
-	 * method can be of utility when multi versions are available, or when an update occurs,
-	 * you can see which version caused the error.
+	 * A method used to return the file name including the file creation date, this
+	 * method is used for old reports that need to be adjusted.
 	 *
-	 * @param version Current project version
-	 * @since 1.0
+	 * @since 1.2
 	 */
-	public void setProjectVersion(String version)  { Report.version = version;       }
+	public String getCreated(@NotNull File targetFile)
+	{
+		BasicFileAttributes attrs;
+		try {
+			if (targetFile.exists()) {
+				attrs = Files.readAttributes(targetFile.toPath(), BasicFileAttributes.class);
+				FileTime time = attrs.creationTime();
+				
+				String pattern = "yyyy-MM-dd";
+				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+				LocalDate date = LocalDate.parse(simpleDateFormat.format(new Date( time.toMillis())));
+				return date + api.getExtension(targetFile.getName());
+			}
+			return null;
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }
