@@ -1,26 +1,22 @@
 package com.frostdeveloper.playerlogs.module;
 
-import com.frostdeveloper.playerlogs.Placeholder;
 import com.frostdeveloper.playerlogs.definition.Config;
-import com.frostdeveloper.playerlogs.manager.CacheManager;
 import com.frostdeveloper.playerlogs.manager.ModuleManager;
 import com.frostdeveloper.playerlogs.model.Module;
 import com.frostdeveloper.playerlogs.model.Scheduler;
+import com.frostdeveloper.playerlogs.util.Placeholder;
 import com.frostdeveloper.playerlogs.util.Util;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
 
 public class RamModule extends ModuleManager implements Module, Scheduler
 {
-	// CLASS INSTANCES
-	private final CacheManager cache = plugin.getCacheManager();
-	
 	// CLASS SPECIFIC OBJECTS
 	private final String identifier = "ram-module";
-	private final String cacheIdentifier = "ram-timer";
 	public final File moduleFile = Util.toFile(moduleDir, "{0}.log", identifier);
 	private final Config permission = Config.MODULE_RAM_ENABLED;
 	private final Config message    = Config.MODULE_RAM_MSG;
@@ -33,7 +29,7 @@ public class RamModule extends ModuleManager implements Module, Scheduler
 	 * @since 1.2
 	 */
 	@Override
-	public void initialize() { start(); }
+	public void initialize()               { start();                                   }
 	
 	/**
 	 * {@inheritDoc}
@@ -43,10 +39,8 @@ public class RamModule extends ModuleManager implements Module, Scheduler
 	@Override
 	public void start()
 	{
-		String cachedTimer = cache.getCache(cacheIdentifier, 0);
-		
 		task = new BukkitRunnable() {
-			int counter = cachedTimer != null ? Integer.parseInt(cachedTimer) : 0;
+			int counter = 0;
 			
 			@Override
 			public void run() {
@@ -66,13 +60,11 @@ public class RamModule extends ModuleManager implements Module, Scheduler
 				// IF COUNTER IS GREATER THAN INTERVAL, DELETE CACHE.
 				if (counter > interval) {
 					counter = 0;
-					cache.setCache(cacheIdentifier, counter);
 				}
 				
 				// IF COUNTER IS LESS THAN INTERVAL, ADD TO COUNTER AND SET CACHE
 				if (counter < interval) {
 					counter++;
-					cache.setCache(cacheIdentifier, counter);
 				}
 				else {
 					String rawMsg = "Used: %server_ram_used% MB | Free: %server_ram_free% MB | Total: %server_ram_total% MB | Max: %server_ram_max% MB";
@@ -96,7 +88,6 @@ public class RamModule extends ModuleManager implements Module, Scheduler
 					}
 					
 					counter = 0;
-					cache.setCache(cacheIdentifier, counter);
 				}
 			}
 		}.runTaskTimer(plugin, 0, 20);
@@ -139,27 +130,27 @@ public class RamModule extends ModuleManager implements Module, Scheduler
 	 * @since 1.2
 	 */
 	@Override
-	public boolean isRegistered() { return getRegisteredList().contains(this); }
+	public boolean isRegistered()          { return getRegisteredList().contains(this); }
 	
 	/**
 	 * {@inheritDoc}
 	 * @since 1.2
 	 */
-	public String getIdentifier() { return identifier;                         }
-	
-	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	@Override
-	public int getTaskId() { return getRegisteredList().indexOf(this); }
+	public @NotNull String getIdentifier() { return identifier;                         }
 	
 	/**
 	 * {@inheritDoc}
 	 * @since 1.2
 	 */
 	@Override
-	public boolean isCancelled() { return task == null || task.isCancelled(); }
+	public int getTaskId()                 { return getRegisteredList().indexOf(this);  }
+	
+	/**
+	 * {@inheritDoc}
+	 * @since 1.2
+	 */
+	@Override
+	public boolean isCancelled()           { return task == null || task.isCancelled(); }
 	
 	/**
 	 * {@inheritDoc}
