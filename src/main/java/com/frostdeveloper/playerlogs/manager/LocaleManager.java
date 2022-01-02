@@ -116,7 +116,11 @@ public class LocaleManager
 		if (messageFile.exists()) {
 			prop.load(messageFile);
 		}
-		return prop.getProperty(key, defaultProp.getProperty(key));
+		
+		if (prop.getProperty(key) != null || defaultProp.getProperty(key) != null) {
+			return prop.getProperty(key, defaultProp.getProperty(key));
+		}
+		return key;
 	}
 	
 	/**
