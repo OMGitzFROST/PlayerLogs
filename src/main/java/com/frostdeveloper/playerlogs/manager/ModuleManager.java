@@ -7,8 +7,8 @@ import com.frostdeveloper.playerlogs.model.Module;
 import com.frostdeveloper.playerlogs.util.Util;
 import com.tchristofferson.configupdater.ConfigUpdater;
 import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -26,54 +26,72 @@ import java.util.ArrayList;
  */
 public class ModuleManager
 {
+	// CLASS INSTANCES
 	protected final PlayerLogs plugin = PlayerLogs.getInstance();
-	protected final FrostAPI api = plugin.getFrostApi();
+	protected final FrostAPI api = plugin.getFrostAPI();
 	
+	// MODULE LISTS
 	private static final ArrayList<Module> registered = new ArrayList<>();
 	private static final ArrayList<Module> master = new ArrayList<>();
 	
+	// CLASS SPECIFIC OBJECTS
 	protected File moduleDir = Util.toFile("log-files");
 	protected final Yaml yaml = new Yaml(Util.toFile("modules.yml"));
 	
+	/**
+	 * A method used to initialize our startup task.
+	 *
+	 * @since 1.2
+	 */
 	public void runTask()
 	{
 		try {
 			if (!yaml.getFile().exists()) {
-				yaml.createFile();
-				plugin.log("index.create.success", yaml.getName());
+				plugin.saveResource(yaml.getName(), true);
+				plugin.debug(getClass(), "index.create.success", yaml.getName());
 			}
 			else {
 				ConfigUpdater.update(plugin, yaml.getName(), Util.toFile(yaml.getName()));
-				plugin.log("index.search.success", yaml.getName());
+				plugin.debug(getClass(), "index.search.success", yaml.getName());
 			}
 			
-			new BukkitRunnable() {
-				
-				@Override
-				public void run() {
-					for (Module module : getRegisteredList()) {
-						module.initialize();
-					}
+			Bukkit.getScheduler().runTaskLater(plugin, () ->
+			{
+				for (Module module : getRegisteredList()) {
+					module.initialize();
 				}
+				plugin.log("module.register.total", getCount());
 				
-			}.runTaskLater(plugin, 0);
-			
-			plugin.log("module.register.total", getCount());
+			}, 0);
 		}
 		catch (IOException ex) {
-			ReportManager.createReport(getClass(), ex, true);
+			plugin.getReport().create(getClass(), ex, false);
 		}
 	}
 	
+	/**
+	 * A method used to initiate our shutdown sequence.
+	 *
+	 * @since 1.2
+	 */
 	public void shutdown()
 	{
-		for (Module module : getRegisteredList()) {
-			module.shutdown();
+		if (registered.size() != 0) {
+			for (Module module : getRegisteredList()) {
+				module.shutdown();
+			}
 		}
 		getRegisteredList().clear();
 		getMasterList().clear();
 	}
 	
+	/**
+	 * A method used to print a message to a modules file.
+	 *
+	 * @param targetFile Target file
+	 * @param message Target message
+	 * @since 1.2
+	 */
 	protected void printToFile(File targetFile, String message)
 	{
 		try {
@@ -85,10 +103,17 @@ public class ModuleManager
 			writer.close();
 		}
 		catch (IOException ex) {
-			ReportManager.createReport(getClass(), ex, true);
+			plugin.getReport().create(getClass(), ex, false);
 		}
 	}
 	
+	/**
+	 * A method used to print a message to a modules file.
+	 *
+	 * @param targetFiles Target file array
+	 * @param message Target message
+	 * @since 1.2
+	 */
 	protected void printToFile(File @NotNull [] targetFiles, String message)
 	{
 		try {
@@ -102,7 +127,7 @@ public class ModuleManager
 			}
 		}
 		catch (IOException ex) {
-			ReportManager.createReport(getClass(), ex, true);
+			plugin.getReport().create(getClass(), ex, false);
 		}
 	}
 	
