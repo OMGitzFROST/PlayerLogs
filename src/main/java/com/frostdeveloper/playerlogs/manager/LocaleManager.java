@@ -2,10 +2,9 @@ package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.api.core.Properties;
-import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.util.Util;
-import org.apache.commons.lang.LocaleUtils;
 
 import java.io.File;
 import java.util.Locale;
@@ -22,10 +21,10 @@ public class LocaleManager
 	// CLASS INSTANCES
 	private final PlayerLogs plugin = PlayerLogs.getInstance();
 	private final ConfigManager config = plugin.getConfigManager();
-	private final FrostAPI api = plugin.getFrostApi();
+	private final FrostAPI api = plugin.getFrostAPI();
 	
 	// CLASS SPECIFIC OBJECTS
-	private final File messageFile = Util.toFile(api.format("message_{0}.properties", getLocale()));
+	private final File messageFile = Util.toFile("message_{0}.properties", getLocale());
 	private final Properties prop = new Properties(true);
 	private final Properties defaultProp = new Properties();
 	
@@ -36,8 +35,9 @@ public class LocaleManager
 	 */
 	public void runTask()
 	{
+		defaultProp.load(plugin.getResource(messageFile.getName()));
+		
 		if (config.getBoolean(Config.CUSTOM_MESSAGE)) {
-			defaultProp.load(plugin.getResource(messageFile.getName()));
 			
 			// IF OTHER MESSAGE FILES EXIST IN DATA FOLDER, MOVE TO BACKUP FOLDER.
 			if (plugin.getDataFolder().exists()) {
@@ -107,13 +107,14 @@ public class LocaleManager
 	 */
 	public String getMessage(String key)
 	{
-		if (messageFile.exists()) {
-			prop.load(messageFile);
-		}
 		defaultProp.load(plugin.getResource(messageFile.getName()));
 		
 		if (defaultProp.isEmpty()) {
 			defaultProp.load(plugin.getResource("message_en.properties"));
+		}
+		
+		if (messageFile.exists()) {
+			prop.load(messageFile);
 		}
 		return prop.getProperty(key, defaultProp.getProperty(key));
 	}
@@ -125,5 +126,5 @@ public class LocaleManager
 	 * @return Server Locale
 	 * @since 1.0
 	 */
-	public Locale getLocale() { return LocaleUtils.toLocale(config.getString(Config.LOCALE)); }
+	public Locale getLocale() { return api.toLocale(config.getString(Config.LOCALE)); }
 }
