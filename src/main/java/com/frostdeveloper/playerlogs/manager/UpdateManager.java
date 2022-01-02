@@ -1,12 +1,12 @@
 package com.frostdeveloper.playerlogs.manager;
 
+import com.frostdeveloper.api.FrostAPI;
+import com.frostdeveloper.api.handler.Report;
+import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.definition.UpdateResult;
-import com.frostdeveloper.playerlogs.model.Module;
-import com.frostdeveloper.playerlogs.model.Scheduler;
 import com.google.common.base.Charsets;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.Bukkit;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -24,12 +24,13 @@ import java.nio.file.StandardCopyOption;
  * @author OMGitzFROST
  * @since 1.0
  */
-public class UpdateManager extends ModuleManager implements Module, Scheduler
+public class UpdateManager
 {
 	// CLASS INSTANCES
+	private final PlayerLogs plugin    = PlayerLogs.getInstance();
+	private final FrostAPI api         = plugin.getFrostAPI();
 	private final ConfigManager config = plugin.getConfigManager();
 	private final LocaleManager locale = plugin.getLocaleManager();
-	private final CacheManager cache = plugin.getCacheManager();
 	
 	// REQUIRED OBJECTS
 	private final File UPDATE_FOLDER;
@@ -45,12 +46,6 @@ public class UpdateManager extends ModuleManager implements Module, Scheduler
 	// UPDATER OBJECTS
 	private static UpdateResult result;
 	
-	// CLASS SPECIFIC OBJECTS
-	private final String identifier = "update-module";
-	private final String cacheIdentifier = "update-timer";
-	private final Config permission = Config.AUTO_UPDATE;
-	private static BukkitTask task;
-	
 	/**
 	 * A constructor for our UpdateManager class, this constructor is used to instantiate
 	 * objects required for our updater to work properly.
@@ -65,123 +60,17 @@ public class UpdateManager extends ModuleManager implements Module, Scheduler
 	}
 	
 	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	@Override
-	public void initialize() { start(); }
-	
-	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	@Override
-	public void start()
-	{
-		String cachedTimer = cache.getCache(cacheIdentifier) != null ? cache.getCache(cacheIdentifier) : "0";
-		
-		task  = new BukkitRunnable() {
-			int counter = Integer.parseInt(cachedTimer);
-			
-			@Override
-			public void run() {
-				final int interval = api.toMinute(30);
-				
-				// STOP TASK IN-CASE THE DATA FOLDER IS DELETED
-				if (!plugin.getDataFolder().exists() || !isRegistered()) {
-					shutdown();
-					return;
-				}
-				
-				// IF COUNTER IS GREATER THAN INTERVAL, DELETE CACHE.
-				if (counter > interval) {
-					cache.deleteCache(cacheIdentifier);
-				}
-				
-				// IF COUNTER IS LESS THAN INTERVAL, ADD TO COUNTER AND SET CACHE
-				if (counter < interval) {
-					counter++;
-					cache.setCache(cacheIdentifier, counter);
-				}
-				else {
-					// IF ALL CHECKS PASS, ATTEMPT UPDATE AND RESET CACHE
-					attemptDownload();
-					plugin.log(getMessage());
-					
-					counter = 0;
-					cache.setCache(cacheIdentifier, counter);
-				}
-			}
-		}.runTaskTimer(plugin, 0, 20);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	@Override
-	public void registerModule()
-	{
-		addToMaster(this);
-		
-		if (config.getBoolean(permission)) {
-			addToRegistry(this);
-		}
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	@Override
-	public void shutdown()
-	{
-		cancel();
-		
-		if (isCancelled()) {
-			plugin.debug(getClass(), "module.unload.success", identifier);
-		}
-	}
-	
-	/**
-	 * {@inheritDoc}
+	 * A method used to run our updater task, this tasks will be run after all other tasks are complete.
 	 *
-	 * @return Module registry status
-	 * @since 1.2
+	 * @since 1.0
 	 */
-	@Override
-	public boolean isRegistered() { return getRegisteredList().contains(this); }
-	
-	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	public String getIdentifier() { return identifier;                         }
-	
-	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	@Override
-	public int getTaskId() { return getRegisteredList().indexOf(this); }
-	
-	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	@Override
-	public boolean isCancelled() { return task == null || task.isCancelled(); }
-	
-	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	@Override
-	public void cancel()
+	public void runTask()
 	{
-		if (task != null) {
-			task.cancel();
-		}
+		Bukkit.getScheduler().runTaskLater(plugin, () -> {
+			attemptDownload();
+			plugin.log(getClass(), getMessage());
+			
+		}, 0);
 	}
 	
 	/**
@@ -243,7 +132,7 @@ public class UpdateManager extends ModuleManager implements Module, Scheduler
 			}
 		}
 		catch (IOException ex) {
-			ReportManager.createReport(getClass(), ex, true);
+			plugin.getReport().create(getClass(), ex, false);
 		}
 	}
 	
@@ -260,14 +149,14 @@ public class UpdateManager extends ModuleManager implements Module, Scheduler
 			
 			// COULDN'T ACCESS URL, BUILT LOCALLY? OR RATE LIMIT REACHED
 			if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND || connection.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN) {
-				plugin.debug("update.fetch.unknown");
+				plugin.debug("update.result.unknown");
 				result = UpdateResult.UNKNOWN;
 				return;
 			}
 			
 			// GITHUB IS DOWN
 			if (connection.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR || connection.getResponseCode() == HttpURLConnection.HTTP_BAD_GATEWAY) {
-				plugin.debug("update.fetch.error");
+				plugin.debug("update.result.error");
 				result = UpdateResult.ERROR;
 				return;
 			}
@@ -290,11 +179,11 @@ public class UpdateManager extends ModuleManager implements Module, Scheduler
 				}
 			}
 			catch (ParseException | NumberFormatException ex) {
-				ReportManager.createReport(getClass(), ex, true);
+				plugin.getReport().create(getClass(), ex, false);
 			}
 		}
 		catch (IOException ex) {
-			ReportManager.createReport(getClass(), ex, true);
+			plugin.getReport().create(getClass(), ex, false);
 		}
 	}
 	
@@ -305,25 +194,20 @@ public class UpdateManager extends ModuleManager implements Module, Scheduler
 	 */
 	public String getMessage()
 	{
-		if (result == UpdateResult.DOWNLOADED) {// The latest version was downloaded.
-			return api.format(locale.getMessage("update.result.downloaded"), REMOTE_VERSION);
+		switch (result) {
+			case DOWNLOADED:
+				return api.format(locale.getMessage("update.result.downloaded"), REMOTE_VERSION);
+			case CURRENT:
+				return api.format(locale.getMessage("update.result.current"));
+			case DISABLED:
+				return api.format(locale.getMessage("update.result.disabled"));
+			case AVAILABLE:
+				return api.format(locale.getMessage("update.result.available"), REMOTE_VERSION);
+			case ERROR:
+				return api.format(locale.getMessage("update.result.error"));
+			default:
+				return api.format(locale.getMessage("update.result.unknown"));
 		}
-		else if (result == UpdateResult.CURRENT) {// The latest version is currently installed
-			return api.format(locale.getMessage("update.result.current"));
-		}
-		else if (result == UpdateResult.DISABLED) {// The updater is disabled in the config file.
-			return api.format(locale.getMessage("update.result.disabled"));
-		}
-		else if (result == UpdateResult.AVAILABLE) {// An update is available for download.
-			return api.format(locale.getMessage("update.result.available"), REMOTE_VERSION);
-		}
-		else if (result == UpdateResult.ERROR) {// Either GitHub is down or the rate limit was reached.
-			return api.format(locale.getMessage("update.result.error"));
-		}
-		else if (result == UpdateResult.UNKNOWN) {// The status of the updater is unknown
-			return api.format(locale.getMessage("update.result.unknown"));
-		}
-		return "";
 	}
 	
 	/**
@@ -338,17 +222,6 @@ public class UpdateManager extends ModuleManager implements Module, Scheduler
 		double remote = Double.parseDouble(REMOTE_VERSION.replace("v", ""));
 		double local  = Double.parseDouble(plugin.getDescription().getVersion());
 		return remote > local;
-	}
-	
-	/**
-	 * A method used to reload our updater, this method cancels all existing schedulers and reloads our updater.
-	 *
-	 * @since 1.1
-	 */
-	public void reload()
-	{
-		task.cancel();
-		runTask();
 	}
 	
 	/**
