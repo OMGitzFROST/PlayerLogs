@@ -44,7 +44,7 @@ public class UpdateManager
 	private String CHANGELOG;
 	
 	// UPDATER OBJECTS
-	private static UpdateResult result;
+	private UpdateResult result;
 	
 	/**
 	 * A constructor for our UpdateManager class, this constructor is used to instantiate
@@ -83,30 +83,30 @@ public class UpdateManager
 		try {
 			/* PRE-CHECKS */
 			if (!config.getBoolean(Config.AUTO_UPDATE)) {
-				result = UpdateResult.DISABLED;
+				this.result = UpdateResult.DISABLED;
 				return;
 			}
 			
 			fetchReleaseDetails();
 			
-			if (result == UpdateResult.UNKNOWN || result == UpdateResult.ERROR) {
+			if (this.result == UpdateResult.UNKNOWN || this.result == UpdateResult.ERROR) {
 				return;
 			}
 			
 			if (ASSET_NAME == null || DOWNLOAD_URL == null) {
-				result = UpdateResult.UNKNOWN;
+				this.result = UpdateResult.UNKNOWN;
 				return;
 			}
 			
 			if (!shouldUpdate()) {
-				result = UpdateResult.CURRENT;
+				this.result = UpdateResult.CURRENT;
 				return;
 			}
 			
 			File downloadFile = new File(UPDATE_FOLDER, ASSET_NAME);
 			
 			if (downloadFile.exists()) {
-				result = UpdateResult.AVAILABLE;
+				this.result = UpdateResult.AVAILABLE;
 				return;
 			}
 			
@@ -150,14 +150,14 @@ public class UpdateManager
 			// COULDN'T ACCESS URL, BUILT LOCALLY? OR RATE LIMIT REACHED
 			if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND || connection.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN) {
 				plugin.debug("update.result.unknown");
-				result = UpdateResult.UNKNOWN;
+				this.result = UpdateResult.UNKNOWN;
 				return;
 			}
 			
 			// GITHUB IS DOWN
 			if (connection.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR || connection.getResponseCode() == HttpURLConnection.HTTP_BAD_GATEWAY) {
 				plugin.debug("update.result.error");
-				result = UpdateResult.ERROR;
+				this.result = UpdateResult.ERROR;
 				return;
 			}
 			
@@ -175,7 +175,7 @@ public class UpdateManager
 				}
 				else {
 					plugin.debug("update.result.nofile");
-					result = UpdateResult.UNKNOWN;
+					this.result = UpdateResult.UNKNOWN;
 				}
 			}
 			catch (ParseException | NumberFormatException ex) {
@@ -194,7 +194,7 @@ public class UpdateManager
 	 */
 	public String getMessage()
 	{
-		switch (result) {
+		switch (this.result) {
 			case DOWNLOADED:
 				return api.format(locale.getMessage("update.result.downloaded"), REMOTE_VERSION);
 			case CURRENT:
@@ -230,7 +230,7 @@ public class UpdateManager
 	 * @return Update result.
 	 * @since 1.1
 	 */
-	public UpdateResult getResult() { return result; }
+	public UpdateResult getResult() { return this.result; }
 	
 	/**
 	 * A method  used to return the project repository identifier
