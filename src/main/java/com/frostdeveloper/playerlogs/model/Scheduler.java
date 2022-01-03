@@ -10,6 +10,13 @@ public interface Scheduler
 	void start();
 	
 	/**
+	 * A method used to shut down typically called on our programs disable sequence.
+	 *
+	 * @since 1.2
+	 */
+	void shutdown();
+	
+	/**
 	 * Returns the taskId for the task.
 	 *
 	 * @return Task id number
