@@ -1,5 +1,11 @@
 package com.frostdeveloper.playerlogs.model;
 
+/**
+ * An interface used to define the required classes needed in-order for a scheduler to work.
+ *
+ * @author OMGitzFROST
+ * @since 1.2
+ */
 public interface Scheduler
 {
 	/**
