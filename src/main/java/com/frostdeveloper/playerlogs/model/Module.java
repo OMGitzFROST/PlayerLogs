@@ -17,12 +17,6 @@ public interface Module
 	 */
 	void initialize();
 	
-	/**
-	 * A method used to shut down typically called on our programs disable sequence.
-	 *
-	 * @since 1.2
-	 */
-	void shutdown();
 	
 	/**
 	 * If granted permission, This method will add our module to our module list and
