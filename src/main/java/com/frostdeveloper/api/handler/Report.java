@@ -73,7 +73,10 @@ public class Report
 	{
 		Validate.notNull(targetFile, "Please define an output location");
 		api.createParent(targetFile);
-		api.renameFile(targetFile, new File(targetFile.getParentFile(), getCreated(targetFile)));
+		
+		if (targetFile.exists()) {
+			api.renameFile(targetFile, new File(targetFile.getParentFile(), getCreated(targetFile)));
+		}
 		
 		printToWriter(targetFile, "Exception Date: " + api.getTimeNow());
 		printToWriter(thrown.getMessage() != null, targetFile, "Error Message: " + thrown.getMessage());
