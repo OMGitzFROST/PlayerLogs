@@ -3,11 +3,14 @@ package com.frostdeveloper.playerlogs.manager;
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.api.core.Yaml;
 import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.model.Module;
+import com.frostdeveloper.playerlogs.model.Scheduler;
 import com.frostdeveloper.playerlogs.util.Util;
 import com.tchristofferson.configupdater.ConfigUpdater;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,6 +19,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * This class is designed to handle and register all current and new modules. It also houses methods
@@ -31,11 +35,12 @@ public class ModuleManager
 	protected final FrostAPI api = plugin.getFrostAPI();
 	
 	// MODULE LISTS
-	private static final ArrayList<Module> registered = new ArrayList<>();
-	private static final ArrayList<Module> master = new ArrayList<>();
+	private static final ArrayList<Object> registered = new ArrayList<>();
+	private static final ArrayList<Object> master = new ArrayList<>();
 	
 	// CLASS SPECIFIC OBJECTS
-	protected File moduleDir = Util.toFile("log-files");
+	protected File moduleDir  = Util.toFile("log-files");
+	protected File globalFile = Util.toFile(moduleDir, "global.log");
 	protected final Yaml yaml = new Yaml(Util.toFile("modules.yml"));
 	
 	/**
@@ -57,8 +62,8 @@ public class ModuleManager
 			
 			Bukkit.getScheduler().runTaskLater(plugin, () ->
 			{
-				for (Module module : getRegisteredList()) {
-					module.initialize();
+				for (Object module : getRegisteredList()) {
+					((Module) module).initialize();
 				}
 				plugin.log("module.register.total", getCount());
 				
@@ -76,11 +81,15 @@ public class ModuleManager
 	 */
 	public void shutdown()
 	{
-		if (registered.size() != 0) {
-			for (Module module : getRegisteredList()) {
-				module.shutdown();
+		for (Object module : getRegisteredList()) {
+			if (module instanceof Scheduler) {
+				((Scheduler) module).shutdown();
+			}
+			else {
+				plugin.debug(module.getClass(), "module.unload.success", ((Module) module).getIdentifier());
 			}
 		}
+		
 		getRegisteredList().clear();
 		getMasterList().clear();
 	}
@@ -122,7 +131,7 @@ public class ModuleManager
 				
 				FileWriter writer = new FileWriter(currentFile, true);
 				PrintWriter printer = new PrintWriter(writer);
-				printer.println(message);
+				printer.println(api.format("[{0}] {1}", api.getTimeNow(), message));
 				writer.close();
 			}
 		}
@@ -179,7 +188,7 @@ public class ModuleManager
 	 * @return The registered list
 	 * @since 1.2
 	 */
-	public ArrayList<Module> getRegisteredList() { return registered;                                                }
+	public ArrayList<Object> getRegisteredList() { return registered;                                                }
 	
 	/**
 	 * A method used to return the master list of modules, the master list is defined as
@@ -188,7 +197,35 @@ public class ModuleManager
 	 * @return The master list
 	 * @since 1.2
 	 */
-	public ArrayList<Module> getMasterList()     { return master;                                                    }
+	public ArrayList<Object> getMasterList()     { return master;                                                    }
+	
+	/**
+	 * A method used to return a player directory for a module file.
+	 *
+	 * @param player Target player
+	 * @return Player directory
+	 * @since 1.2
+	 */
+	public File getPlayerDir(OfflinePlayer player)
+	{
+		if (getConfig().getBoolean(Config.USE_UUID.getPath())) {
+			//TO UUID
+			if (Util.toFile(moduleDir, player.getName()).exists()) {
+				api.renameFile(Util.toFile(moduleDir, player.getName()), player.getUniqueId().toString());
+			}
+		}
+		else {
+			// TO NAME
+			if (Util.toFile(moduleDir, player.getUniqueId().toString()).exists()) {
+				api.renameFile(Util.toFile(moduleDir, player.getUniqueId().toString()), player.getName());
+			}
+		}
+		
+		if (getConfig().getBoolean(Config.USE_UUID.getPath())) {
+			return Util.toFile(moduleDir, player.getUniqueId().toString());
+		}
+		return Util.toFile(moduleDir, Objects.requireNonNull(player.getName()));
+	}
 	
 	/**
 	 * A method used to return the current count of modules running.
