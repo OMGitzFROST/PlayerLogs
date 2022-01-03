@@ -79,25 +79,25 @@ public enum Config
 	 *
 	 * @since 1.1
 	 */
-	MODULE_JOIN_ENABLED("join.module.enabled"),
+	MODULE_JOIN_ENABLED("join-module.enabled"),
 	/**
 	 * A path to the join modules logged message.
 	 *
 	 * @since 1.1
 	 */
-	MODULE_JOIN_MSG("join.module.message"),
+	MODULE_JOIN_MSG("join-module.message"),
 	/**
 	 * A path to determine if the quit module is enabled.
 	 *
 	 * @since 1.1
 	 */
-	MODULE_QUIT_ENABLED("quit.module.enabled"),
+	MODULE_QUIT_ENABLED("quit-module.enabled"),
 	/**
 	 * A path to the quit modules logged message.
 	 *
 	 * @since 1.1
 	 */
-	MODULE_QUIT_MSG("quit.module.message"),
+	MODULE_QUIT_MSG("quit-module.message"),
 	/**
 	 * A path to determine if the chat module is enabled.
 	 *
