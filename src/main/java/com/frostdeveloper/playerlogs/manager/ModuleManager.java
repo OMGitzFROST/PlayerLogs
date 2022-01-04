@@ -96,9 +96,6 @@ public class ModuleManager
 			if (module instanceof Scheduler) {
 				((Scheduler) module).shutdown();
 			}
-			else {
-				plugin.debug(module.getClass(), "module.unload.success", ((Module) module).getIdentifier());
-			}
 		}
 		
 		getRegisteredList().clear();
