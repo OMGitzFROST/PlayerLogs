@@ -4,15 +4,14 @@ import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.definition.Permission;
 import com.frostdeveloper.playerlogs.manager.ConfigManager;
+import com.frostdeveloper.playerlogs.manager.LocaleManager;
 import com.frostdeveloper.playerlogs.manager.ModuleManager;
-import com.frostdeveloper.playerlogs.manager.ReportManager;
 import com.frostdeveloper.playerlogs.manager.UpdateManager;
-import com.frostdeveloper.playerlogs.model.User;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,11 +27,12 @@ import java.util.List;
 public class BaseCommand implements CommandExecutor, TabCompleter
 {
 	// CLASS INSTANCES
-	private final PlayerLogs plugin = PlayerLogs.getInstance();
-	private final UpdateManager updater = plugin.getUpdateManager();
+	private final PlayerLogs plugin    = PlayerLogs.getInstance();
+	private final UpdateManager update = plugin.getUpdateManager();
 	private final ConfigManager config = plugin.getConfigManager();
 	private final ModuleManager module = plugin.getModuleManager();
-	private final FrostAPI api = plugin.getFrostApi();
+	private final LocaleManager locale = plugin.getLocaleManager();
+	private final FrostAPI api         = plugin.getFrostAPI();
 	
 	/**
 	 * Executes the given command, returning its success.
@@ -50,98 +50,117 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args)
 	{
-		try {
-			User user = new User((OfflinePlayer) sender);
+		if (command.getAliases().contains(label)) {
 			
-			if (label.equalsIgnoreCase("playerlog") || command.getAliases().contains(label)) {
-				if (user.hasPermission(Permission.CMD_RELOAD, Permission.CMD_UPDATE)) {
-					if (args.length == 1) {
-						switch (args[0]) {
-							case "update":
-								executeUpdate(user);
-								break;
-							case "reload":
-								executeReload(user);
-								break;
-							default:
-								user.sendMessage("plugin.command.invalid", getLabelUsage(command, label));
-						}
-					}
-					else {
-						user.sendMessage("plugin.command.invalid", getLabelUsage(command, label));
-					}
-				}
-				else {
-					user.sendMessage("plugin.command.denied");
-				}
+			if (args.length != 1) {
+				executeInvalid(sender, command, label);
+				return true;
 			}
-			return true;
+			
+			switch (args[0]) {
+				case "update":
+					executeUpdate(sender);
+					break;
+				case "reload":
+					executeReload(sender);
+					break;
+				case "help":
+				case "purge":
+					executeUnsupported(sender);
+					break;
+				default:
+					executeInvalid(sender, command, label);
+					break;
+			}
 		}
-		catch (Exception ex) {
-			ReportManager.createReport(getClass(), ex, true);
-			return true;
-		}
+		return true;
 	}
 	
 	/**
-	 * A method used to execute our update command
+	 * A method used to execute our update task.
 	 *
+	 * @param sender Entity that executed the command
 	 * @since 1.1
 	 */
-	private void executeUpdate(@NotNull User user)
+	private void executeUpdate(CommandSender sender)
 	{
-		if (user.hasPermission(Permission.CMD_UPDATE)) {
-			updater.attemptDownload();
+		if (Permission.isPermitted(sender, Permission.CMD_UPDATE)) {
+			update.runTask();
 			
-			if (user.getPlayer().isOnline()) {
-				user.sendMessage(updater.getMessage());
-				plugin.log(updater.getMessage());
-				return;
+			if (sender instanceof Player) {
+				sender.sendMessage(update.getMessage());
 			}
-			plugin.log(updater.getMessage());
 		}
 		else {
-			user.sendMessage("plugin.command.denied");
+			sendMessage(sender, "plugin.command.denied");
 		}
 	}
 	
 	/**
-	 * A method used to execute our reload command
+	 * A method used to execute our reload task.
 	 *
+	 * @param sender Entity that executed the command
 	 * @since 1.1
 	 */
-	private void executeReload(@NotNull User user)
+	private void executeReload(CommandSender sender)
 	{
-		if (user.hasPermission(Permission.CMD_RELOAD)) {
-			updater.reload();
-			module.correctUserFiles();
-			config.attemptUpdate();
+		if (Permission.isPermitted(sender, Permission.CMD_RELOAD)) {
+			config.reloadConfig();
+			module.reloadConfig();
 			
-			if (user.getPlayer().isOnline()) {
-				user.sendMessage("plugin.reload.success");
+			if (sender instanceof Player) {
+				sendMessage(sender, "plugin.reload.success");
 			}
 			plugin.log("plugin.reload.success");
 		}
+	}
+	
+	/**
+	 * A method used to notify the CommandSender is a command is available but is currently
+	 * unsupported
+	 *
+	 * @param sender The entity that executed the command
+	 * @since 1.2
+	 */
+	private void executeUnsupported(CommandSender sender)
+	{
+		if (sender instanceof Player) {
+			sendMessage(sender, "plugin.command.unsupported");
+		}
 		else {
-			user.sendMessage("plugin.command.denied");
+			plugin.log("plugin.command.unsupported");
 		}
 	}
 	
-	/*
-	 * MISC METHODS
+	/**
+	 * A method used to notify the CommandSender if a command is invalid
+	 *
+	 * @param sender The entity that executed the command
+	 * @param command The command executed
+	 * @param label The label used to execute command
+	 * @since 1.2
 	 */
+	private void executeInvalid(CommandSender sender, Command command, String label)
+	{
+		if (sender instanceof Player) {
+			sendMessage(sender, "plugin.command.invalid", api.format(command.getUsage(), label));
+		}
+		else {
+			plugin.log("plugin.command.invalid", api.format(command.getUsage(), label));
+		}
+	}
 	
 	/**
-	 * A method used to get a command usage from a label.
+	 * A method used to send a command sender a localized message
 	 *
-	 * @param cmd Executed command
-	 * @param label References label
-	 * @return Command ussage.
-	 * @since 1.1
+	 * @param sender The entity that executed a command
+	 * @param message The property key
+	 * @param param Optional parameters
+	 * @since 1.2
 	 */
-	private @NotNull String getLabelUsage(@NotNull Command cmd, String label)
+	private void sendMessage(@NotNull CommandSender sender, String message, Object... param)
 	{
-		return api.format(cmd.getUsage(), label);
+		sender.sendMessage(api.format(locale.getMessage(message), param));
 	}
 	
 	/**
@@ -150,22 +169,21 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	 * @param sender  Source of the command.  For players tab-completing a command inside of a command block, this
 	 *                will be the player, not the command block.
 	 * @param command Command which was executed
-	 * @param label   The alias used
+	 * @param alias   The alias used
 	 * @param args    The arguments passed to the command, including final partial argument to be completed and
 	 *                command label
 	 * @return A List of possible completions for the final argument, or null to default to the command executor
 	 */
-	@Nullable
 	@Override
-	public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args)
+	public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args)
 	{
-		User user = new User((OfflinePlayer) sender);
-		
-		if (label.equalsIgnoreCase("playerlog") || command.getAliases().contains(label)) {
-			List<String> options = new ArrayList<>();
-			api.addToList(options,"reload", user.hasPermission(Permission.CMD_RELOAD));
-			api.addToList(options,"update", user.hasPermission(Permission.CMD_UPDATE));
-			return options;
+		if (command.getAliases().contains(alias)) {
+			if (args.length == 1) {
+				List<String> options = new ArrayList<>();
+				api.addToList(options,"reload", Permission.isPermitted(sender, Permission.CMD_RELOAD));
+				api.addToList(options,"update", Permission.isPermitted(sender, Permission.CMD_UPDATE));
+				return options;
+			}
 		}
 		return null;
 	}
