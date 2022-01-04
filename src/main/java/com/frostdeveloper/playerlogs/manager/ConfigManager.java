@@ -1,6 +1,5 @@
 package com.frostdeveloper.playerlogs.manager;
 
-import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.api.core.Yaml;
 import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.definition.Config;
@@ -36,7 +35,6 @@ public class ConfigManager
 			plugin.saveResource(yaml.getName(), true);
 			plugin.log("index.create.success", yaml.getName());
 		}
-		plugin.debug(getClass(), "index.search.success", yaml.getName());
 		verifyConfig();
 	}
 	
