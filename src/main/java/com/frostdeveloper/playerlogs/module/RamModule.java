@@ -114,14 +114,7 @@ public class RamModule extends ModuleManager implements Module, Scheduler
 	 * @since 1.2
 	 */
 	@Override
-	public void shutdown()
-	{
-		cancel();
-		
-		if (isCancelled()) {
-			plugin.debug(getClass(), "module.unload.success", identifier);
-		}
-	}
+	public void shutdown()                 { cancel();                                  }
 	
 	/**
 	 * {@inheritDoc}
