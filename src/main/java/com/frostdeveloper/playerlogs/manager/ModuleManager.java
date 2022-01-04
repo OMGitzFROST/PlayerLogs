@@ -75,6 +75,13 @@ public class ModuleManager
 	}
 	
 	/**
+	 * A method used to reload our configurations, this method will create a config if one does not exist.
+	 *
+	 * @since 1.2
+	 */
+	public void reloadConfig()                   { runTask();                                                        }
+	
+	/**
 	 * A method used to initiate our shutdown sequence.
 	 *
 	 * @since 1.2
