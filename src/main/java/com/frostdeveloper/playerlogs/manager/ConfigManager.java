@@ -21,7 +21,6 @@ public class ConfigManager
 {
 	// CLASS INSTANCES
 	private static final PlayerLogs plugin = PlayerLogs.getInstance();
-	private static final FrostAPI api = plugin.getFrostAPI();
 	
 	// CLASS SPECIFIC OBJECTS
 	private final Yaml yaml = new Yaml(Util.toFile("config.yml"));
@@ -55,6 +54,13 @@ public class ConfigManager
 			plugin.getReport().create(getClass(), ex, false);
 		}
 	}
+	
+	/**
+	 * A method used to reload our configurations, this method will create a config if one does not exist.
+	 *
+	 * @since 1.2
+	 */
+	public void reloadConfig()                      { runTask();                              }
 	
 	/**
 	 * A method used to return a string from our configuration
