@@ -57,7 +57,6 @@ public class ModuleManager
 			}
 			else {
 				ConfigUpdater.update(plugin, yaml.getName(), Util.toFile(yaml.getName()));
-				plugin.debug(getClass(), "index.search.success", yaml.getName());
 			}
 			
 			Bukkit.getScheduler().runTaskLater(plugin, () ->
@@ -79,7 +78,12 @@ public class ModuleManager
 	 *
 	 * @since 1.2
 	 */
-	public void reloadConfig()                   { runTask();                                                        }
+	public void reloadConfig()
+	{
+		shutdown();
+		plugin.registerModules();
+		runTask();
+	}
 	
 	/**
 	 * A method used to initiate our shutdown sequence.
