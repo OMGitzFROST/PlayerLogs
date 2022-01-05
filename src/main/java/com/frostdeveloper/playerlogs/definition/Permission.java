@@ -3,6 +3,7 @@ package com.frostdeveloper.playerlogs.definition;
 import com.frostdeveloper.api.exceptions.MissingEnumException;
 import com.frostdeveloper.playerlogs.PlayerLogs;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -112,14 +113,45 @@ public enum Permission
 	 */
 	public static boolean isPermitted(CommandSender sender, Permission @NotNull ... perms)
 	{
-		boolean isPermitted = false;
-		
 		for (Permission perm : perms) {
-			if (isPermitted(sender, perm)) {
-				isPermitted = true;
+			if (!sender.hasPermission(perm.toPerm())) {
+				return false;
 			}
 		}
-		return isPermitted;
+		return true;
+	}
+	
+	/**
+	 * A method used tp determine whether a command sender is permitted any of the listed
+	 * permissions, if any is permitted, it will return true.
+	 *
+	 * @param player Target player
+	 * @param perm Target permission
+	 * @return Permission status
+	 * @since 1.2
+	 */
+	public static boolean isPermitted(@NotNull Player player, @NotNull Permission perm)
+	{
+		return player.hasPermission(perm.toPerm()) || player.hasPermission(perm.toPerm());
+	}
+	
+	/**
+	 * A method used tp determine whether a command sender is permitted any of the listed
+	 * permissions, if any is permitted, it will return true.
+	 *
+	 * @param player Target player
+	 * @param perms List of perms
+	 * @return Permission status
+	 * @since 1.2
+	 */
+	public static boolean isPermitted(@NotNull Player player, Permission @NotNull ... perms)
+	{
+		for (Permission perm : perms) {
+			if (!player.hasPermission(perm.toPerm())) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	/*
