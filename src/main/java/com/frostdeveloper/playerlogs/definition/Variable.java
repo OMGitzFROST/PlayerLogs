@@ -31,7 +31,24 @@ public enum Variable
 	 *
 	 * @since 1.2
 	 */
-	RAM_MAX("%server_ram_max%");
+	RAM_MAX("%server_ram_max%"),
+	
+	/*
+	 * PLAYER VARIABLES
+	 */
+	
+	/**
+	 * A value used to define the variable used to return a players name.
+	 *
+	 * @since 1.2
+	 */
+	PLAYER_NAME("%player_name%"),
+	/**
+	 * A value used to define the variable used to return a players displayname.
+	 *
+	 * @since 1.2
+	 */
+	PLAYER_DISPLAY("%display_name%");
 	
 	/*
 	 * --------------------------------------------------------------
