@@ -3,6 +3,7 @@ package com.frostdeveloper.playerlogs.module;
 import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.manager.ModuleManager;
 import com.frostdeveloper.playerlogs.model.Module;
+import com.frostdeveloper.playerlogs.util.Placeholder;
 import com.frostdeveloper.playerlogs.util.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -14,6 +15,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Objects;
 
+/**
+ * A method used to handle our join module
+ *
+ *
+ * @author OMGitzFROST
+ * @since 1.0
+ */
 public class JoinModule extends ModuleManager implements Module, Listener
 {
 	// CLASS SPECIFIC OBJECTS
@@ -47,10 +55,10 @@ public class JoinModule extends ModuleManager implements Module, Listener
 		String msg = requireDefault ? event.getJoinMessage() : Objects.requireNonNull(getConfig().getString(message.getPath()));
 		
 		if (getConfig().getBoolean(Config.MODULARIZE.getPath())) {
-			printToFile(logFiles, api.stripColor(msg));
+			printToFile(logFiles, api.stripColor(Placeholder.set(player, msg)));
 		}
 		else {
-			printToFile(globalFile, api.stripColor(msg));
+			printToFile(globalFile, api.stripColor(Placeholder.set(player, msg)));
 		}
 	}
 	
