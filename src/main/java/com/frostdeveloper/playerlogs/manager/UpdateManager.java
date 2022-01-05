@@ -4,9 +4,15 @@ import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.api.handler.Report;
 import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.definition.Config;
+import com.frostdeveloper.playerlogs.definition.Permission;
 import com.frostdeveloper.playerlogs.definition.UpdateResult;
 import com.google.common.base.Charsets;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -24,7 +30,7 @@ import java.nio.file.StandardCopyOption;
  * @author OMGitzFROST
  * @since 1.0
  */
-public class UpdateManager
+public class UpdateManager implements Listener
 {
 	// CLASS INSTANCES
 	private final PlayerLogs plugin    = PlayerLogs.getInstance();
@@ -57,6 +63,7 @@ public class UpdateManager
 		REPO = api.format("OMGitzFROST/{0}", plugin.getDescription().getName());
 		RELEASE_URL = api.format("https://api.github.com/repos/{0}/releases/latest", getRepo());
 		UPDATE_FOLDER = plugin.getServer().getUpdateFolderFile();
+		Bukkit.getPluginManager().registerEvents(this, plugin);
 	}
 	
 	/**
@@ -71,6 +78,26 @@ public class UpdateManager
 			plugin.log(getClass(), getMessage());
 			
 		}, 0);
+	}
+	
+	/**
+	 * A listener used to announce available updates if one is available
+	 *
+	 * @param event Triggered event
+	 * @since 1.1
+	 */
+	@EventHandler
+	public void onPlayerJoin(@NotNull PlayerJoinEvent event)
+	{
+		
+		Player player = event.getPlayer();
+		
+		if (Permission.isPermitted(player, Permission.CMD_UPDATE)) {
+			
+			if (getResult() == UpdateResult.AVAILABLE) {
+				player.sendMessage("update.result.available");
+			}
+		}
 	}
 	
 	/**
