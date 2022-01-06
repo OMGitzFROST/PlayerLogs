@@ -187,7 +187,19 @@ public enum Config
 	 *
 	 * @since 1.2
 	 */
-	MODULE_RAM_COOLDOWN("ram-module.cooldown");
+	MODULE_RAM_COOLDOWN("ram-module.cooldown"),
+	/**
+	 * A path to determine if our enchant module is enabled.
+	 *
+	 * @since 1.2
+	 */
+	MODULE_ENCHANT_ENABLED("enchant-module.enabled"),
+	/**
+	 * A path to our enchant modules logged message.
+	 *
+	 * @since 1.2
+	 */
+	MODULE_ENCHANT_MSG("enchant-module.message");
 	
 	/*
 	 * --------------------------------------------------------------
