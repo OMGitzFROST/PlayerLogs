@@ -26,70 +26,70 @@ use-uuid: true
 # to your liking, PlaceholderAPI is supported for variables.
 join-module:
     enabled: true
-    message: "DEFAULT"
+    message: '%default%'
 
 # This module is used to log when a player leaves the server, You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
 # to your liking, PlaceholderAPI is supported for variables.
 quit-module:
     enabled: true
-    message: "DEFAULT"
+    message: '%default%'
 
 # This module is used to log when a sends a message on the server, You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
 # to your liking, PlaceholderAPI is supported for variables.
 chat-module:
     enabled: true
-    message: "DEFAULT"
+    message: '%default%'
 
 # This module is used to log when a player dies, You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
 # to your liking, PlaceholderAPI is supported for variables.
 death-module:
     enabled: true
-    message: "DEFAULT"
+    message: '%default%'
 
 # This module is used to log when a player executes a command, You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
 # to your liking, PlaceholderAPI is supported for variables.
 command-module:
     enabled: true
-    message: "%display_name% issued command %command_issued%"
+    message: '%default%'
 
 # This module is used to log when a player teleports (non portal), You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
 # to your liking, PlaceholderAPI is supported for variables.
 teleport-module:
     enabled: true
-    message: "%display_name% teleported to %player_location%"
+    message: '%default%'
 
 # This module is used to log when a player enchants an item, You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
 # to your liking, PlaceholderAPI is supported for variables.
 enchant-module:
     enabled: true
-    message: "%display_name% enchanted %enchanted_item%"
+    message: '%default%'
 
 # This module is used to log when a player breaks a block, You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
 # to your liking, PlaceholderAPI is supported for variables.
 block-break-module:
     enabled: true
-    message: "%display_name% broke %broken_block%"
+    message: '%default%'
 
 # This module is used to log when a player places a block, You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
 # to your liking, PlaceholderAPI is supported for variables.
 block-place-module:
     enabled: true
-    message: "%display_name% placed a(n) %placed_block% block"
+    message: '%default%'
 
 # This module is used to log when a player changes worlds, You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
 # to your liking, PlaceholderAPI is supported for variables.
 world-change-module:
     enabled: true
-    message: "%display_name% changed worlds to %player_world%"
+    message: '%default%'
 
 # This module is used to log when the current ram at a specified time, You can disable this
 # feature by setting enabled to false and also, you can edit the message logged
@@ -97,6 +97,6 @@ world-change-module:
 ram-module:
     enabled: true
     cooldown: 30m
-    message: "Used: %server_ram_used% MB | Free: %server_ram_free% MB | Total: %server_ram_total% MB | Max: %server_ram_max% MB"
+    message: '%default%'
     
     
