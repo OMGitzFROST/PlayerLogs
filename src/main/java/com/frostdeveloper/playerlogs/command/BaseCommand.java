@@ -2,6 +2,7 @@ package com.frostdeveloper.playerlogs.command;
 
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.definition.Permission;
 import com.frostdeveloper.playerlogs.manager.ConfigManager;
 import com.frostdeveloper.playerlogs.manager.LocaleManager;
@@ -160,7 +161,11 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	 */
 	private void sendMessage(@NotNull CommandSender sender, String message, Object... param)
 	{
-		sender.sendMessage(api.format(locale.getMessage(message), param));
+		String prefix = config.getString(Config.PREFIX);
+		boolean usePrefix = config.getBoolean(Config.USE_PREFIX);
+		String msg = usePrefix ? prefix + " " +  locale.getMessage(message) : locale.getMessage(message);
+		
+		sender.sendMessage(api.format(msg, param));
 	}
 	
 	/**
