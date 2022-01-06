@@ -107,9 +107,10 @@ public class LocaleManager
 	 */
 	public String getMessage(String key)
 	{
-		defaultProp.load(plugin.getResource(messageFile.getName()));
-		
-		if (defaultProp.isEmpty()) {
+		if (plugin.getResource(messageFile.getName()) != null) {
+			defaultProp.load(plugin.getResource(messageFile.getName()));
+		}
+		else {
 			defaultProp.load(plugin.getResource("message_en.properties"));
 		}
 		
