@@ -157,6 +157,7 @@ public class UpdateManager implements Listener
 				pw.println(CHANGELOG);
 				pw.close();
 			}
+			in.close();
 		}
 		catch (IOException ex) {
 			plugin.getReport().create(getClass(), ex, false);
@@ -204,6 +205,7 @@ public class UpdateManager implements Listener
 					plugin.debug("update.result.nofile");
 					this.result = UpdateResult.UNKNOWN;
 				}
+				connection.disconnect();
 			}
 			catch (ParseException | NumberFormatException ex) {
 				plugin.getReport().create(getClass(), ex, false);
