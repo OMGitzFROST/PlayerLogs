@@ -5,11 +5,16 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,7 +25,7 @@ import java.util.Objects;
  * @author OMGitzFROST
  * @version 1.0
  */
-public final class FrostAPI
+public class FrostAPI
 {
 	/**
 	 * A method used to return an instance of this api class
@@ -139,6 +144,24 @@ public final class FrostAPI
 	 * @since 1.0
 	 */
 	public File getParent(@NotNull File targetFile) { return targetFile.getParentFile(); }
+	
+	/**
+	 * This method is used to get the date a file was created.
+	 *
+	 * @param targetFile The target file
+	 * @return The creation date of a file.
+	 * @throws IOException Thrown if the file is null
+	 * @since 1.0
+	 */
+	private @NotNull String getCreatedDate(@NotNull File targetFile) throws IOException
+	{
+		BasicFileAttributes attrs = Files.readAttributes(targetFile.toPath(), BasicFileAttributes.class);
+		FileTime time = attrs.creationTime();
+		
+		String pattern = "yyyy-MM-dd HH:mm:ss";
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+		return simpleDateFormat.format(new Date(time.toMillis()));
+	}
 	
 	
 	/*
