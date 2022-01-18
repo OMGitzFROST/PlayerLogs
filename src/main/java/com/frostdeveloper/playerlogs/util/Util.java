@@ -2,8 +2,6 @@ package com.frostdeveloper.playerlogs.util;
 
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlogs.PlayerLogs;
-import com.frostdeveloper.playerlogs.definition.Permission;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,11 +33,7 @@ public class Util
 	@Contract ("_ -> new")
 	public static @NotNull File toFile(@NotNull String path)
 	{
-		if (path.contains("/")) {
-			String[] splitPath = path.split("/");
-			return new File(plugin.getDataFolder() + File.separator + splitPath[0], splitPath[1]);
-		}
-		return new File(plugin.getDataFolder(), path);
+		return api.toFile(plugin.getDataFolder(), path);
 	}
 	
 	/**
@@ -53,11 +47,7 @@ public class Util
 	@Contract ("_, _ -> new")
 	public static @NotNull File toFile(@NotNull String path, Object... param)
 	{
-		if (path.contains("/")) {
-			String[] splitPath = path.split("/");
-			return new File(plugin.getDataFolder() + File.separator + splitPath[0], api.format(splitPath[1], param));
-		}
-		return new File(plugin.getDataFolder(), api.format(path, param));
+		return api.toFile(plugin.getDataFolder(), api.format(path, param));
 	}
 	
 	/**
@@ -71,6 +61,6 @@ public class Util
 	 */
 	public static @NotNull File toFile(File parent, String name, Object... param)
 	{
-		return new File(parent, api.format(name, param));
+		return api.toFile(parent, api.format(name, param));
 	}
 }
