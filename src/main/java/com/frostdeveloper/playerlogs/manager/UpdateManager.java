@@ -1,7 +1,6 @@
 package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.api.handler.Report;
 import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.definition.Permission;
@@ -21,6 +20,7 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
@@ -89,11 +89,9 @@ public class UpdateManager implements Listener
 	@EventHandler
 	public void onPlayerJoin(@NotNull PlayerJoinEvent event)
 	{
-		
 		Player player = event.getPlayer();
 		
 		if (Permission.isPermitted(player, Permission.CMD_UPDATE)) {
-			
 			if (getResult() == UpdateResult.AVAILABLE) {
 				player.sendMessage("update.result.available");
 			}
@@ -160,7 +158,7 @@ public class UpdateManager implements Listener
 			in.close();
 		}
 		catch (IOException ex) {
-			plugin.getReport().create(getClass(), ex, false);
+			plugin.getReport().create(ex);
 		}
 	}
 	
@@ -173,6 +171,12 @@ public class UpdateManager implements Listener
 	{
 		try {
 			final HttpURLConnection connection = (HttpURLConnection) new URL(RELEASE_URL).openConnection();
+			
+			if (connection == null) {
+				result = UpdateResult.UNKNOWN;
+				return;
+			}
+			
 			connection.connect();
 			
 			// COULDN'T ACCESS URL, BUILT LOCALLY? OR RATE LIMIT REACHED
@@ -208,11 +212,16 @@ public class UpdateManager implements Listener
 				connection.disconnect();
 			}
 			catch (ParseException | NumberFormatException ex) {
-				plugin.getReport().create(getClass(), ex, false);
+				plugin.getReport().create(ex);
 			}
 		}
 		catch (IOException ex) {
-			plugin.getReport().create(getClass(), ex, false);
+			if (ex instanceof UnknownHostException) {
+				result = UpdateResult.UNKNOWN;
+			}
+			else {
+				plugin.getReport().create(ex);
+			}
 		}
 	}
 	
