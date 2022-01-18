@@ -1,6 +1,6 @@
 package com.frostdeveloper.playerlogs.definition;
 
-import com.frostdeveloper.api.exceptions.MissingEnumException;
+import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlogs.PlayerLogs;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -46,6 +46,7 @@ public enum Permission
 	
 	// CLASS INSTANCES
 	private static final PlayerLogs plugin = PlayerLogs.getInstance();
+	private static final FrostAPI api = plugin.getFrostAPI();
 	
 	// CLASS SPECIFIC OBJECTS
 	private final String perm;
@@ -61,7 +62,7 @@ public enum Permission
 	/**
 	 * A method used to verify that our enum permissions and our plugin.yml permissions
 	 * are the same, if there are any differences in these lists, this method will throw
-	 * a {@link MissingEnumException}.
+	 * a {@link NullPointerException}.
 	 *
 	 * @since 1.2
 	 */
@@ -76,7 +77,7 @@ public enum Permission
 		
 		List<String> enumList = new ArrayList<>();
 		for (Permission enumPerm : Permission.values()) {
-			enumList.add(enumPerm.toPerm());
+			enumList.add(enumPerm.toString());
 		}
 		
 		if (!internalList.equals(enumList)) {
@@ -84,7 +85,7 @@ public enum Permission
 		}
 		
 		if (errorFound) {
-			throw new MissingEnumException("Our ({0}) enum failed verification", Permission.class.getSimpleName());
+			throw new IllegalArgumentException(api.format("Our ({0}) enum failed verification", Permission.class.getSimpleName()));
 		}
 	}
 	
@@ -99,7 +100,7 @@ public enum Permission
 	 */
 	public static boolean isPermitted(@NotNull CommandSender sender, @NotNull Permission perm)
 	{
-		return sender.hasPermission(Permission.ALL.toPerm()) || sender.hasPermission(perm.toPerm());
+		return sender.hasPermission(Permission.ALL.toString()) || sender.hasPermission(perm.toString());
 	}
 	
 	/**
@@ -114,7 +115,7 @@ public enum Permission
 	public static boolean isPermitted(CommandSender sender, Permission @NotNull ... perms)
 	{
 		for (Permission perm : perms) {
-			if (!sender.hasPermission(perm.toPerm())) {
+			if (!sender.hasPermission(perm.toString())) {
 				return false;
 			}
 		}
@@ -132,7 +133,7 @@ public enum Permission
 	 */
 	public static boolean isPermitted(@NotNull Player player, @NotNull Permission perm)
 	{
-		return player.hasPermission(perm.toPerm()) || player.hasPermission(perm.toPerm());
+		return player.hasPermission(perm.toString()) || player.hasPermission(perm.toString());
 	}
 	
 	/**
@@ -147,7 +148,7 @@ public enum Permission
 	public static boolean isPermitted(@NotNull Player player, Permission @NotNull ... perms)
 	{
 		for (Permission perm : perms) {
-			if (!player.hasPermission(perm.toPerm())) {
+			if (!player.hasPermission(perm.toString())) {
 				return false;
 			}
 		}
@@ -164,5 +165,6 @@ public enum Permission
 	 * @return String permission
 	 * @since 1.2
 	 */
-	private String toPerm() { return perm;      }
+	@Override
+	public String toString() { return perm;      }
 }
