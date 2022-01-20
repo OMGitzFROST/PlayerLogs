@@ -199,7 +199,19 @@ public enum Config
 	 *
 	 * @since 1.2
 	 */
-	MODULE_ENCHANT_MSG("enchant-module.message");
+	MODULE_ENCHANT_MSG("enchant-module.message"),
+	/**
+	 * A path to determine if our enchant module is enabled.
+	 *
+	 * @since 1.2
+	 */
+	MODULE_TELEPORT_ENABLED("teleport-module.enabled"),
+	/**
+	 * A path to our teleport modules logged message.
+	 *
+	 * @since 1.2
+	 */
+	MODULE_TELEPORT_MSG("teleport-module.message");
 	
 	/*
 	 * --------------------------------------------------------------
