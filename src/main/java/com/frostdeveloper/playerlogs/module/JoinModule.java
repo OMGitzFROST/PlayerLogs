@@ -1,97 +1,103 @@
 package com.frostdeveloper.playerlogs.module;
 
 import com.frostdeveloper.playerlogs.definition.Config;
-import com.frostdeveloper.playerlogs.manager.ModuleManager;
+import com.frostdeveloper.playerlogs.definition.Variable;
 import com.frostdeveloper.playerlogs.model.Module;
 import com.frostdeveloper.playerlogs.util.Placeholder;
-import com.frostdeveloper.playerlogs.util.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.Objects;
-
-/**
- * A method used to handle our join module
- *
- *
- * @author OMGitzFROST
- * @since 1.0
- */
-public class JoinModule extends ModuleManager implements Module, Listener
+public class JoinModule extends Module implements Listener
 {
 	// CLASS SPECIFIC OBJECTS
-	private final String identifier = "join-module";
-	private final Config permission = Config.MODULE_JOIN_ENABLED;
-	private final Config message    = Config.MODULE_JOIN_MSG;
+	private final Config enabled = Config.MODULE_JOIN_ENABLED;
+	private final Config message = Config.MODULE_JOIN_MSG;
 	
 	/**
-	 * {@inheritDoc}
+	 * An event handler used to handle our join event when triggered and execute the required tasks
 	 *
-	 * @since 1.2
-	 */
-	@Override
-	public void initialize() { Bukkit.getServer().getPluginManager().registerEvents(this, plugin); }
-	
-	/**
-	 * An event handler used to listen for when a player joins the server and log the event
-	 * to a file.
-	 *
-	 * @param event Triggered event
-	 * @since 1.1
+	 * @param event Event triggered
+	 * @since 1.0
 	 */
 	@EventHandler
 	public void onPlayerJoin(@NotNull PlayerJoinEvent event)
 	{
-		Player player   = event.getPlayer();
-		File playerFile = Util.toFile(getPlayerDir(player), "{0}.log", identifier);
-		File[] logFiles = {globalFile, playerFile};
-		
-		boolean requireDefault = Objects.requireNonNull(getConfig().getString(message.getPath())).equalsIgnoreCase("DEFAULT");
-		String msg = requireDefault ? event.getJoinMessage() : Objects.requireNonNull(getConfig().getString(message.getPath()));
-		
-		if (getConfig().getBoolean(Config.MODULARIZE.getPath())) {
-			printToFile(logFiles, api.stripColor(Placeholder.set(player, msg)));
-		}
-		else {
-			printToFile(globalFile, api.stripColor(Placeholder.set(player, msg)));
-		}
+		Player player = event.getPlayer();
+		Placeholder.addCustom(Variable.DEFAULT, event.getJoinMessage());
+		printToFile(player,  Placeholder.set(player, getMessage()));
 	}
 	
 	/**
-	 * {@inheritDoc}
+	 * A method is called once the module is registered, and initializes the assigned arithmetic.
 	 *
 	 * @since 1.2
 	 */
 	@Override
-	public void registerModule()
-	{
-		addToMaster(this);
-		
-		if (getConfig().getBoolean(permission.getPath())) {
-			addToRegistry(this);
-		}
-	}
+	public void initialize()      { Bukkit.getServer().getPluginManager().registerEvents(this, plugin); }
 	
 	/**
-	 * {@inheritDoc}
+	 * A method used to return the message assigned to a module
+	 *
+	 * @return Module message
+	 * @since 1.2
+	 */
+	@Override
+	public String getMessage()    { return manager.getString(message);                                  }
+	
+	/**
+	 * A method used to return whether a module is enabled
+	 *
+	 * @return Module status
+	 * @since 1.2
+	 */
+	@Override
+	public boolean isEnabled()    { return manager.getBoolean(enabled);                                 }
+	
+	/**
+	 * A method used to determine whether a module is registered.
 	 *
 	 * @return Module registry status
 	 * @since 1.2
 	 */
 	@Override
-	public boolean isRegistered()          { return getRegisteredList().contains(this); }
+	public boolean isRegistered() { return  manager.getRegisteredList().contains(this);                 }
 	
 	/**
-	 * {@inheritDoc}
+	 * A method used to return the identifier for a module. The identifier serves as the name of
+	 * the module and additionally can be used to track its timer using the cache manager.
 	 *
 	 * @return Module identifier
 	 * @since 1.0
 	 */
+	public @NotNull String getIdentifier()
+	{
+		String rawModuleName = this.getClass().getSimpleName().toLowerCase();
+		return rawModuleName.replace("module", "");
+	}
+	
+	/**
+	 * A method used to return the full identifier for a module.
+	 *
+	 * @return Full module identifier
+	 * @since 1.2
+	 */
 	@Override
-	public @NotNull String getIdentifier() { return identifier;                         }
+	public @NotNull String getFullIdentifier()
+	{
+		String rawModuleName = this.getClass().getSimpleName().toLowerCase();
+		return rawModuleName.replace("module", "-module");
+	}
+	
+	/**
+	 * A method used to return the active handler list for a module.
+	 *
+	 * @since 1.2
+	 */
+	@Override
+	public void removeListener()  { PlayerQuitEvent.getHandlerList().unregister(this);                  }
 }
