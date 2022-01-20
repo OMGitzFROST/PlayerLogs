@@ -57,13 +57,24 @@ public abstract class Module
 	public abstract boolean isRegistered();
 	
 	/**
+	 * A method used to return the active handler list for a module.
+	 *
+	 * @since 1.2
+	 */
+	public abstract void removeListener();
+	
+	/**
 	 * A method used to return the identifier for a module. The identifier serves as the name of
 	 * the module and additionally can be used to track its timer using the cache manager.
 	 *
 	 * @return Module identifier
 	 * @since 1.0
 	 */
-	public abstract @NotNull String getIdentifier();
+	public @NotNull String getIdentifier()
+	{
+		String rawModuleName = this.getClass().getSimpleName().toLowerCase();
+		return rawModuleName.replace("module", "");
+	}
 	
 	/**
 	 * A method used to return the full identifier for a module.
@@ -71,14 +82,11 @@ public abstract class Module
 	 * @return Full module identifier
 	 * @since 1.2
 	 */
-	public abstract @NotNull String getFullIdentifier();
-	
-	/**
-	 * A method used to return the active handler list for a module.
-	 *
-	 * @since 1.2
-	 */
-	public abstract void removeListener();
+	public @NotNull String getFullIdentifier()
+	{
+		String rawModuleName = this.getClass().getSimpleName().toLowerCase();
+		return rawModuleName.replace("module", "-module");
+	}
 	
 	/**
 	 * A method used to print a modules message to its log file.
