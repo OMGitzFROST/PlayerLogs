@@ -9,6 +9,13 @@ package com.frostdeveloper.playerlogs.definition;
 public enum Variable
 {
 	/**
+	 * A value used to define a default placeholder for any type of message, this message does not hava
+	 * a set value and is used dynamically.
+	 *
+	 * @since 1.2
+	 */
+	DEFAULT("%default%"),
+	/**
 	 * A value used to define the variable used to return the server's used ram.
 	 *
 	 * @since 1.2
