@@ -98,7 +98,7 @@
                     <relocations>
                         <relocation>
                             <pattern>org.bstats</pattern>
-                            <shadedPattern>com.frostdeveloper.playerlogs.services</shadedPattern>
+                            <shadedPattern>com.frostdeveloper.playerlogs.service</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>
