@@ -9,20 +9,6 @@ package com.frostdeveloper.playerlogs.model;
 public interface Scheduler
 {
 	/**
-	 * Called to initialize the runnable
-	 *
-	 * @since 1.2
-	 */
-	void start();
-	
-	/**
-	 * A method used to shut down typically called on our programs disable sequence.
-	 *
-	 * @since 1.2
-	 */
-	void shutdown();
-	
-	/**
 	 * Returns the taskId for the task.
 	 *
 	 * @return Task id number
