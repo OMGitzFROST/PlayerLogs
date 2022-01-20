@@ -1,6 +1,16 @@
 package com.frostdeveloper.playerlogs.model;
 
+import com.frostdeveloper.api.FrostAPI;
+import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.manager.ModuleManager;
+import com.frostdeveloper.playerlogs.util.Util;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * An interface used to define the required classes needed in-order for a module to work.
@@ -8,23 +18,35 @@ import org.jetbrains.annotations.NotNull;
  * @author OMGitzFROST
  * @since 1.2
  */
-public interface Module
+public abstract class Module
 {
+	// CLASS INSTANCES
+	protected final PlayerLogs plugin = PlayerLogs.getInstance();
+	protected final FrostAPI api = plugin.getFrostAPI();
+	protected final ModuleManager manager = plugin.getModuleManager();
+	
 	/**
 	 * A method is called once the module is registered, and initializes the assigned arithmetic.
 	 *
 	 * @since 1.2
 	 */
-	void initialize();
-	
+	public abstract void initialize();
 	
 	/**
-	 * If granted permission, This method will add our module to our module list and
-	 * will determine if the module should be initialized.
+	 * A method used to return the message assigned to a module
 	 *
+	 * @return Module message
 	 * @since 1.2
 	 */
-	void registerModule();
+	public abstract String getMessage();
+	
+	/**
+	 * A method used to return whether a module is enabled
+	 *
+	 * @return Module status
+	 * @since 1.2
+	 */
+	public abstract boolean isEnabled();
 	
 	/**
 	 * A method used to determine whether a module is registered.
@@ -32,7 +54,7 @@ public interface Module
 	 * @return Module registry status
 	 * @since 1.2
 	 */
-	boolean isRegistered();
+	public abstract boolean isRegistered();
 	
 	/**
 	 * A method used to return the identifier for a module. The identifier serves as the name of
@@ -41,5 +63,42 @@ public interface Module
 	 * @return Module identifier
 	 * @since 1.0
 	 */
-	@NotNull String getIdentifier();
+	public abstract @NotNull String getIdentifier();
+	
+	/**
+	 * A method used to return the full identifier for a module.
+	 *
+	 * @return Full module identifier
+	 * @since 1.2
+	 */
+	public abstract @NotNull String getFullIdentifier();
+	
+	/**
+	 * A method used to return the active handler list for a module.
+	 *
+	 * @since 1.2
+	 */
+	public abstract void removeListener();
+	
+	/**
+	 * A method used to print a modules message to its log file.
+	 *
+	 * @param player Target player
+	 * @param message Target message
+	 * @since 1.2
+	 */
+	public void printToFile(Player player, String message)
+	{
+		File playerFile = Util.toFile(manager.getUserDirectory(player), getFullIdentifier() + ".log");
+		
+		try {
+			FileWriter writer = new FileWriter(playerFile, true);
+			PrintWriter printer = new PrintWriter(writer);
+			printer.println("[" + api.getTodayAsString() + "]: " + api.stripColor(message));
+			printer.close();
+		}
+		catch (IOException ex) {
+			plugin.getReport().create(ex);
+		}
+	}
 }
