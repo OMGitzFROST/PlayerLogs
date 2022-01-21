@@ -40,7 +40,7 @@ public class Placeholder
 	 */
 	public static @NotNull List<String> set(Player player, @NotNull List<String> input)
 	{
-		return input.stream().map(line -> applyPlaceholder(player, line)).collect(Collectors.toList());
+		return input.stream().map(line -> set(player, line)).collect(Collectors.toList());
 	}
 	
 	/**
@@ -52,7 +52,7 @@ public class Placeholder
 	 */
 	public static List<String> set(@NotNull List<String> input)
 	{
-		return input.stream().map(line -> applyPlaceholder(null, line)).collect(Collectors.toList());
+		return input.stream().map(Placeholder::set).collect(Collectors.toList());
 	}
 	
 	/**
@@ -69,7 +69,7 @@ public class Placeholder
 		Validate.notNull(player, api.format("Could not add placeholders, the player provided is null"));
 		
 		if (plugin.isPAPIHooked()) {
-			return PlaceholderAPI.setPlaceholders(player, input);
+			return applyCustomPlaceholder(PlaceholderAPI.setPlaceholders(player, input));
 		}
 		return applyPlaceholder(player, input);
 	}
@@ -85,7 +85,7 @@ public class Placeholder
 		Validate.notNull(input, api.format("Could not add placeholders, the input provided is null"));
 		
 		if (plugin.isPAPIHooked()) {
-			return PlaceholderAPI.setPlaceholders(null, input);
+			return applyCustomPlaceholder(PlaceholderAPI.setPlaceholders(null, input));
 		}
 		return applyPlaceholder(null, input);
 	}
@@ -102,10 +102,6 @@ public class Placeholder
 		Runtime r = Runtime.getRuntime();
 		final int MB = 1048576;
 		
-		for (Map.Entry<String, Object> custom : customVariables.entrySet()) {
-			input = replace(input, custom.getKey(), custom.getValue());
-		}
-		
 		// SERVER VARIABLES
 		input = replace(input, Variable.RAM_USED, (r.totalMemory() - r.freeMemory()) / MB);
 		input = replace(input, Variable.RAM_TOTAL, r.totalMemory() / MB);
@@ -116,6 +112,21 @@ public class Placeholder
 		if (player != null) {
 			input = replace(input, Variable.PLAYER_NAME, player.getName());
 			input = replace(input, Variable.PLAYER_DISPLAY, player.getDisplayName());
+		}
+		return applyCustomPlaceholder(input);
+	}
+	
+	/**
+	 * A method used to apply custom placeholder into an input
+	 *
+	 * @param input Target input
+	 * @return A string with implemented variables
+	 * @since 1.2
+	 */
+	private static String applyCustomPlaceholder(String input)
+	{
+		for (Map.Entry<String, Object> custom : customVariables.entrySet()) {
+			input = replace(input, custom.getKey(), custom.getValue());
 		}
 		return input;
 	}
@@ -158,6 +169,8 @@ public class Placeholder
 	 */
 	public static void addCustom(String var, Object value)
 	{
+		matchPattern(var);
+		
 		if (!customVariables.containsKey(var)) {
 			customVariables.put(var, value);
 		}
@@ -166,5 +179,38 @@ public class Placeholder
 		}
 	}
 	
-	public static void addCustom(@NotNull Variable var, Object value) { addCustom(var.toVar(), value); }
+	/**
+	 * A method used to add a custom variable that cannot be defined in our Placeholder class, but will
+	 * be converted into a string when our {@link #set(String)} method is called.
+	 *
+	 * @param var Custom variable
+	 * @param value Custom value assigned to variable
+	 * @since 1.2
+	 */
+	public static void addCustom(@NotNull Variable var, Object value)
+	{
+		matchPattern(var.toVar());
+		
+		if (!customVariables.containsKey(var.toVar())) {
+			customVariables.put(var.toVar(), value);
+		}
+		else {
+			customVariables.replace(var.toVar(), value);
+		}
+	}
+	
+	/**
+	 * A method used to verify that a custom variable is in compliance with the required
+	 * format, If it cannot be verified or failed verification, this method will
+	 * throw an exception.
+	 *
+	 * @param var Target variable
+	 * @since 1.2
+	 */
+	private static void matchPattern(@NotNull String var)
+	{
+		if (!var.startsWith("%") || !var.endsWith("%")) {
+			throw new IllegalArgumentException("Custom variable format invalid: " + var);
+		}
+	}
 }
