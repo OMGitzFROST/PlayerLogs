@@ -58,7 +58,7 @@ public class RamModule extends Module implements Listener, Scheduler
 		Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
 		
 		task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-			manager.reloadConfig();
+			manager.reload();
 			Bukkit.getServer().getPluginManager().callEvent(new RamEvent());
 		}, 0, api.toTime(manager.getString(cooldown)) * 20L);
 	}
