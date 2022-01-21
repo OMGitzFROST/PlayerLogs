@@ -209,6 +209,17 @@ public class Configuration
 	public double getDouble(@NotNull Config path)            { return getConfig().getDouble(path.getPath());      }
 	
 	/**
+	 * A method used to return an integer value from our configuration, it takes a string and parses it into
+	 * a valid double.
+	 *
+	 * @param path Configuration path
+	 * @return Parsed double
+	 * @since 1.2
+	 */
+	public int getInt(@NotNull Config path)                  { return getConfig().getInt(path.getPath());         }
+	
+	
+	/**
 	 * A method used to return a list of string from our configuration.
 	 *
 	 * @param path Configuration path
@@ -217,4 +228,16 @@ public class Configuration
 	 */
 	public List<String> getStringList(@NotNull Config path)  { return getConfig().getStringList(path.getPath());  }
 	
+	/*
+	 * BOOLEAN CHECKS
+	 */
+	
+	/**
+	 * A method used to return whether a path represents a list.
+	 *
+	 * @param path Target path
+	 * @return Whether path is a list
+	 * @since 1.2
+	 */
+	public boolean isList(@NotNull Config path)              { return config.isList(path.getPath());              }
 }
