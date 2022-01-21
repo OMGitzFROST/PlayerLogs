@@ -1,10 +1,12 @@
-package com.frostdeveloper.playerlogs.manager;
+package com.frostdeveloper.playerlogs.service;
 
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.definition.Permission;
 import com.frostdeveloper.playerlogs.definition.UpdateResult;
+import com.frostdeveloper.playerlogs.manager.ConfigManager;
+import com.frostdeveloper.playerlogs.manager.LocaleManager;
 import com.google.common.base.Charsets;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -30,7 +32,7 @@ import java.nio.file.StandardCopyOption;
  * @author OMGitzFROST
  * @since 1.0
  */
-public class UpdateManager implements Listener
+public class UpdateService implements Listener
 {
 	// CLASS INSTANCES
 	private final PlayerLogs plugin    = PlayerLogs.getInstance();
@@ -58,7 +60,7 @@ public class UpdateManager implements Listener
 	 *
 	 * @since 1.1
 	 */
-	public UpdateManager()
+	public UpdateService()
 	{
 		REPO = api.format("OMGitzFROST/{0}", plugin.getDescription().getName());
 		RELEASE_URL = api.format("https://api.github.com/repos/{0}/releases/latest", getRepo());
@@ -71,12 +73,11 @@ public class UpdateManager implements Listener
 	 *
 	 * @since 1.0
 	 */
-	public void runTask()
+	public void initialize()
 	{
 		Bukkit.getScheduler().runTaskLater(plugin, () -> {
 			attemptDownload();
-			plugin.log(getClass(), getMessage());
-			
+			plugin.debug(getClass(), getMessage());
 		}, 0);
 	}
 	
@@ -249,7 +250,7 @@ public class UpdateManager implements Listener
 	}
 	
 	/**
-	 * A method used to determine whether an update is required. It compares the remote version to the local vesion
+	 * A method used to determine whether an update is required. It compares the remote version to the local version
 	 * to return its requested outcome.
 	 *
 	 * @return Update status
