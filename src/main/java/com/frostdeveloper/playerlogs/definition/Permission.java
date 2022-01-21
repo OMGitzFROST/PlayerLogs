@@ -38,7 +38,21 @@ public enum Permission
 	 *
 	 * @since 1.2
 	 */
-	CMD_RELOAD("playerlogs.command.reload");
+	CMD_RELOAD("playerlogs.command.reload"),
+	/**
+	 * This value defines the permission string that allows any permitted user
+	 * to execute the module command for this plugin.
+	 *
+	 * @since 1.2
+	 */
+	CMD_MODULE("playerlogs.command.module"),
+	/**
+	 * This value defines the permission string that allows any permitted user
+	 * to view module information.
+	 *
+	 * @since 1.2
+	 */
+	CMD_MODULE_INFO("playerlogs.command.module.info");
 	
 	/*
 	 * --------------------------------------------------------------
