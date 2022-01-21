@@ -6,6 +6,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This class is designed to add methods that are repetitive but are unique to this plugin.
@@ -62,5 +64,44 @@ public class Util
 	public static @NotNull File toFile(File parent, String name, Object... param)
 	{
 		return api.toFile(parent, api.format(name, param));
+	}
+	
+	/**
+	 * A method used to build a head for a specific string
+	 *
+	 * @param input Target input
+	 * @param character Desired character
+	 * @return Built header
+	 * @since 1.2
+	 */
+	public static @NotNull String buildHeader(@NotNull String input, char character)
+	{
+		if (input.length() > 0) {
+			char[] array = new char[input.length()];
+			Arrays.fill(array, character);
+			return new String(array);
+		}
+		return "";
+	}
+	
+	/**
+	 * A method used to build a header from a list of strings
+	 *
+	 * @param input Target input
+	 * @param character Desired character
+	 * @return Built header
+	 * @since 1.2
+	 */
+	public static @NotNull String buildHeader(@NotNull List<String> input, char character)
+	{
+		if (input.stream().map(String::length).max(Integer::compareTo).isPresent()) {
+			int headerSize = input.stream().map(String::length).max(Integer::compareTo).get();
+			if (headerSize > 0) {
+				char[] array = new char[headerSize];
+				Arrays.fill(array, character);
+				return new String(array);
+			}
+		}
+		return "";
 	}
 }
