@@ -108,7 +108,7 @@ public class Configuration
 	 *
 	 * @since 1.2
 	 */
-	public void reloadConfig()
+	public void reload()
 	{
 		config = YamlConfiguration.loadConfiguration(getFile());
 		
@@ -146,7 +146,7 @@ public class Configuration
 	public FileConfiguration getConfig()
 	{
 		if (reload) {
-			reloadConfig();
+			reload();
 		}
 		return config;
 	}
