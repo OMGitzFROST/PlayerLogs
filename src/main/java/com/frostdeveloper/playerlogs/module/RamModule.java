@@ -1,159 +1,126 @@
 package com.frostdeveloper.playerlogs.module;
 
 import com.frostdeveloper.playerlogs.definition.Config;
-import com.frostdeveloper.playerlogs.manager.ModuleManager;
+import com.frostdeveloper.playerlogs.event.RamEvent;
 import com.frostdeveloper.playerlogs.model.Module;
 import com.frostdeveloper.playerlogs.model.Scheduler;
 import com.frostdeveloper.playerlogs.util.Placeholder;
-import com.frostdeveloper.playerlogs.util.Util;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.List;
 
-public class RamModule extends ModuleManager implements Module, Scheduler
+/**
+ * This module class houses all required methods inorder for this module to work, Each module is
+ * nested under our {@link Module} class that defines all required methods needed for a module to
+ * work.
+ *
+ * @author OMGitzFROST
+ * @since 1.0
+ */
+public class RamModule extends Module implements Listener, Scheduler
 {
 	// CLASS SPECIFIC OBJECTS
-	private final String identifier = "ram-module";
-	public final File moduleFile = Util.toFile(moduleDir, "{0}.log", identifier);
-	private final Config permission = Config.MODULE_RAM_ENABLED;
-	private final Config message    = Config.MODULE_RAM_MSG;
-	private final Config cooldown   = Config.MODULE_RAM_COOLDOWN;
-	private static BukkitTask task;
+	private final Config message  = Config.MODULE_RAM_MSG;
+	private final Config enabled  = Config.MODULE_RAM_ENABLED;
+	private final Config cooldown = Config.MODULE_RAM_COOLDOWN;
+	
+	private BukkitTask task;
 	
 	/**
-	 * {@inheritDoc}
+	 * A method used to handle our event trigger and complete a task when triggered.
 	 *
-	 * @since 1.2
+	 * @param event Target event
+	 * @since 1.0
 	 */
-	@Override
-	public void initialize()               { start();                                   }
-	
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @since 1.2
-	 */
-	@Override
-	public void start()
+	@EventHandler
+	public void onEventTrigger(@NotNull RamEvent event)
 	{
-		task = new BukkitRunnable() {
-			int counter = 0;
-			
-			@Override
-			public void run() {
-				int interval = api.convertToTime(yaml.getString(cooldown.getPath()));
-				
-				// STOP TASK IN-CASE THE DATA FOLDER IS DELETED
-				if (!plugin.getDataFolder().exists()) {
-					this.cancel();
-					return;
-				}
-				
-				// IF TASK IS NO LONGER REGISTERED, ATTEMPT SHUTDOWN.
-				if (!isRegistered()) {
-					shutdown();
-				}
-				
-				// IF COUNTER IS GREATER THAN INTERVAL, DELETE CACHE.
-				if (counter > interval) {
-					counter = 0;
-				}
-				
-				// IF COUNTER IS LESS THAN INTERVAL, ADD TO COUNTER AND SET CACHE
-				if (counter < interval) {
-					counter++;
-				}
-				else {
-					String rawMsg = "Used: %server_ram_used% MB | Free: %server_ram_free% MB | Total: %server_ram_total% MB | Max: %server_ram_max% MB";
-					
-					if (getConfig().isList(Config.MODULE_RAM_MSG.getPath())) {
-						List<String> msg = api.stripColor(getConfig().getStringList(message.getPath()));
-						
-						for (String string : msg) {
-							if (string.equalsIgnoreCase("DEFAULT")) {
-								printToFile(moduleFile, Placeholder.set(rawMsg));
-							}
-							else {
-								printToFile(moduleFile, Placeholder.set(string));
-							}
-						}
-					}
-					
-					if (getConfig().isString(Config.MODULE_RAM_MSG.getPath())) {
-						String msg = api.stripColor(getConfig().getString(message.getPath()));
-						printToFile(moduleFile, Placeholder.set(msg));
-					}
-					
-					counter = 0;
-				}
-			}
-		}.runTaskTimer(plugin, 0, 20);
+		if (manager.isList(message)) {
+			printToFile(Placeholder.set(getMessageList()), Placeholder.set(event.getMessage()));
+		}
+		else {
+			printToFile(Placeholder.set(getMessage()), Placeholder.set(event.getMessage()));
+		}
 	}
 	
 	/**
-	 * {@inheritDoc}
+	 * A method is called once the module is registered, and initializes the assigned arithmetic.
 	 *
 	 * @since 1.2
 	 */
 	@Override
-	public void registerModule()
+	public void initialize()
 	{
-		addToMaster(this);
+		Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
 		
-		if (getConfig().getBoolean(permission.getPath())) {
-			addToRegistry(this);
-		}
+		task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+			manager.reloadConfig();
+			Bukkit.getServer().getPluginManager().callEvent(new RamEvent());
+		}, 0, api.toTime(manager.getString(cooldown)) * 20L);
 	}
 	
 	/**
-	 * {@inheritDoc}
+	 * A method used to return the message assigned to a module
+	 *
+	 * @return Module message
+	 * @since 1.2
+	 */
+	@Override
+	public String getMessage()           { return manager.getString(message);                           }
+	
+	/**
+	 * A method used to return the message list assigned to the module.
+	 *
+	 * @return Message List
+	 * @since 1.2
+	 */
+	@Override
+	public List<String> getMessageList() { return manager.getStringList(message);                       }
+	
+	/**
+	 * A method used to return whether a module is enabled
+	 *
+	 * @return Module status
+	 * @since 1.2
+	 */
+	@Override
+	public boolean isEnabled()    { return manager.getBoolean(enabled);                                 }
+	
+	/**
+	 * A method used to return the active handler list for a module.
 	 *
 	 * @since 1.2
 	 */
 	@Override
-	public void shutdown()                 { cancel();                                  }
+	public void removeListener()  { RamEvent.getHandlerList().unregister(this);                  }
 	
 	/**
-	 * {@inheritDoc}
+	 * Returns the taskId for the task.
 	 *
-	 * @return Module registry status
+	 * @return Task id number
 	 * @since 1.2
 	 */
 	@Override
-	public boolean isRegistered()          { return getRegisteredList().contains(this); }
+	public int getTaskId() { return manager.getRegisteredList().indexOf(this); }
 	
 	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	public @NotNull String getIdentifier() { return identifier;                         }
-	
-	/**
-	 * {@inheritDoc}
+	 * Returns true if this task has been cancelled.
+	 *
+	 * @return true if the task has been cancelled
 	 * @since 1.2
 	 */
 	@Override
-	public int getTaskId()                 { return getRegisteredList().indexOf(this);  }
+	public boolean isCancelled() { return task == null || task.isCancelled(); }
 	
 	/**
-	 * {@inheritDoc}
+	 * Will attempt to cancel this task.
+	 *
 	 * @since 1.2
 	 */
 	@Override
-	public boolean isCancelled()           { return task == null || task.isCancelled(); }
-	
-	/**
-	 * {@inheritDoc}
-	 * @since 1.2
-	 */
-	@Override
-	public void cancel()
-	{
-		if (task != null) {
-			task.cancel();
-		}
-	}
+	public void cancel() { task.cancel(); }
 }
