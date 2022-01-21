@@ -112,8 +112,9 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	{
 		if (Permission.isPermitted(sender, Permission.CMD_RELOAD)) {
 			// CONFIGURATION RELOAD
-			config.reloadConfig();
-			module.reloadConfig();
+			config.reload();
+			locale.reload();
+			module.reload();
 			
 			// PREFORM AUDITS
 			module.initializeAudit();
