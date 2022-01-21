@@ -11,6 +11,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 /**
  * This module class houses all required methods inorder for this module to work, Each module is
  * nested under our {@link Module} class that defines all required methods needed for a module to
@@ -26,26 +28,23 @@ public class QuitModule extends Module implements Listener
 	private final Config message  = Config.MODULE_QUIT_MSG;
 	
 	/**
-	 * An event handler used to handle our quit event when triggered and execute the required tasks
+	 * A method used to handle our event trigger and complete a task when triggered.
 	 *
-	 * @param event Event triggered
+	 * @param event Target event
 	 * @since 1.0
 	 */
 	@EventHandler
-	public void onPlayerQuit(@NotNull PlayerQuitEvent event)
+	public void onEventTrigger(@NotNull PlayerQuitEvent event)
 	{
 		Player player = event.getPlayer();
-		Placeholder.addCustom(Variable.DEFAULT, event.getQuitMessage());
-		printToFile(player,  Placeholder.set(player, getMessage()));
+		
+		if (manager.isList(message)) {
+			printToFile(player, Placeholder.set(player, getMessageList()), Placeholder.set(player, event.getQuitMessage()));
+		}
+		else {
+			printToFile(player, Placeholder.set(player, getMessage()), Placeholder.set(player, event.getQuitMessage()));
+		}
 	}
-	
-	/**
-	 * A method is called once the module is registered, and initializes the assigned arithmetic.
-	 *
-	 * @since 1.2
-	 */
-	@Override
-	public void initialize() { Bukkit.getServer().getPluginManager().registerEvents(this, plugin); }
 	
 	/**
 	 * A method used to return the message assigned to a module
@@ -57,6 +56,15 @@ public class QuitModule extends Module implements Listener
 	public String getMessage() { return manager.getString(message); }
 	
 	/**
+	 * A method used to return the message list assigned to the module.
+	 *
+	 * @return Message List
+	 * @since 1.2
+	 */
+	@Override
+	public List<String> getMessageList() { return manager.getStringList(message);                       }
+	
+	/**
 	 * A method used to return whether a module is enabled
 	 *
 	 * @return Module status
@@ -66,43 +74,8 @@ public class QuitModule extends Module implements Listener
 	public boolean isEnabled() { return manager.getBoolean(enabled); }
 	
 	/**
-	 * A method used to determine whether a module is registered.
-	 *
-	 * @return Module registry status
-	 * @since 1.2
-	 */
-	@Override
-	public boolean isRegistered() { return  manager.getRegisteredList().contains(this); }
-	
-	/**
-	 * A method used to return the identifier for a module. The identifier serves as the name of
-	 * the module and additionally can be used to track its timer using the cache manager.
-	 *
-	 * @return Module identifier
-	 * @since 1.0
-	 */
-	public @NotNull String getIdentifier()
-	{
-		String rawModuleName = this.getClass().getSimpleName().toLowerCase();
-		return rawModuleName.replace("module", "");
-	}
-	
-	/**
-	 * A method used to return the full identifier for a module.
-	 *
-	 * @return Full module identifier
-	 * @since 1.2
-	 */
-	@Override
-	public @NotNull String getFullIdentifier()
-	{
-		String rawModuleName = this.getClass().getSimpleName().toLowerCase();
-		return rawModuleName.replace("module", "-module");
-	}
-	
-	/**
 	 * A method used to return the active handler list for a module.
-	 * 
+	 *
 	 * @since 1.2
 	 */
 	@Override
