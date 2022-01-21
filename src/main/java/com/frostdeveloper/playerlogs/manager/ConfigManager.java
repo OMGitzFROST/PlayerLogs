@@ -5,6 +5,13 @@ import com.frostdeveloper.playerlogs.core.Configuration;
 import com.frostdeveloper.playerlogs.model.Manager;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A manager tasked with handling all tasks related to our main configuration, with this class you can retrieve
+ * configuration values, create, load, etc.
+ *
+ * @author OMGitzFROST
+ * @since 1.0
+ */
 public class ConfigManager extends Configuration implements Manager
 {
 	/**
