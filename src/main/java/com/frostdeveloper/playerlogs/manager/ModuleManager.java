@@ -1,245 +1,341 @@
 package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.api.FrostAPI;
-import com.frostdeveloper.api.core.Yaml;
+import com.frostdeveloper.api.exception.FailedMethodException;
 import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.core.Configuration;
 import com.frostdeveloper.playerlogs.definition.Config;
+import com.frostdeveloper.playerlogs.model.Manager;
 import com.frostdeveloper.playerlogs.model.Module;
 import com.frostdeveloper.playerlogs.model.Scheduler;
+import com.frostdeveloper.playerlogs.module.*;
 import com.frostdeveloper.playerlogs.util.Util;
-import com.tchristofferson.configupdater.ConfigUpdater;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Objects;
 
 /**
- * This class is designed to handle and register all current and new modules. It also houses methods
- * to get module counts and provides access to required methods used in our module classes.
+ * A manager tasked with handling all tasks related to our modules, this module will register, unregister,
+ * and add modules to the correct lists, and more
  *
  * @author OMGitzFROST
- * @since 1.2
+ * @since 1.0
  */
-public class ModuleManager
+public class ModuleManager extends Configuration implements Manager
 {
 	// CLASS INSTANCES
-	protected final PlayerLogs plugin = PlayerLogs.getInstance();
-	protected final FrostAPI api = plugin.getFrostAPI();
-	
-	// MODULE LISTS
-	private static final ArrayList<Object> registered = new ArrayList<>();
-	private static final ArrayList<Object> master = new ArrayList<>();
+	private final PlayerLogs plugin = PlayerLogs.getInstance();
+	private final FrostAPI api      = plugin.getFrostAPI();
 	
 	// CLASS SPECIFIC OBJECTS
-	protected File moduleDir  = Util.toFile("log-files");
-	protected File globalFile = Util.toFile(moduleDir, "global.log");
-	protected final Yaml yaml = new Yaml(Util.toFile("modules.yml"));
+	private static final ArrayList<Module> registered = new ArrayList<>();
+	private static final ArrayList<Module> master = new ArrayList<>();
 	
 	/**
-	 * A method used to initialize our startup task.
+	 * A super constructor used to define the variables needed to determine how this class works.
+	 *
+	 * @param target This parameter is used to define the path in which the desired configuration will be located.
+	 * @param reload This parameter will define if the configuration should always automatically reload its values, if
+	 *               set to false, the target will only update on a complete reload or shutdown.
+	 * @since 1.2
+	 */
+	public ModuleManager(@NotNull String target, boolean reload) { super(target, reload); }
+	
+	/**
+	 * A method used to at the start of the {@link PlayerLogs#onEnable()} method. This method should be used to
+	 * create a configuration file and potentially include patch updates.
 	 *
 	 * @since 1.2
 	 */
-	public void runTask()
+	@Override
+	public void initialize()
 	{
-		try {
-			if (!yaml.getFile().exists()) {
-				plugin.saveResource(yaml.getName(), true);
-				plugin.debug(getClass(), "index.create.success", yaml.getName());
+		// IF A CONFIG DOES NOT EXIST THIS METHOD WILL CREATE ONE FOR US
+		saveDefaultConfig();
+		
+		// ATTEMPT UPDATE FOR OUR MODULE FILE
+		if (exists()) {
+			attemptUpdate();
+		}
+		
+		// INITIALIZE ALL REGISTERED MODULES
+		Bukkit.getScheduler().runTaskLater(plugin, () -> {
+			for (Module current : getRegisteredList()) {
+				current.initialize();
 			}
-			else {
-				ConfigUpdater.update(plugin, yaml.getName(), Util.toFile(yaml.getName()));
+			// VERIFY THAT ALL PLAYER FILES AND MODULES ARE CORRECTLY CONFIGURED
+			initializeAudit();
+		}, 0);
+	}
+	
+	/**
+	 * A method used to return our master list. If the list does not contain any modules, this method
+	 * will automatically register all modules into our {@link #master} list.
+	 *
+	 * @return All values housed in our registered list.
+	 * @since 1.2
+	 */
+	public ArrayList<Module> getMasterList()
+	{
+		if (master.size() == 0) {
+			setModuleList();
+		}
+		return master;
+	}
+	
+	/**
+	 * A method used to add  all available modules and add them into our {@link #master} list. This method
+	 * does not add modules to the registry but should be used once per startup/reload.
+	 *
+	 * @since 1.2
+	 */
+	private void setModuleList()
+	{
+		master.add(new BreakModule());
+		master.add(new ChatModule());
+		master.add(new CMDModule());
+		master.add(new DeathModule());
+		master.add(new EnchantModule());
+		master.add(new JoinModule());
+		master.add(new PlaceModule());
+		master.add(new QuitModule());
+		master.add(new RamModule());
+		master.add(new TeleportModule());
+		master.add(new WorldModule());
+	}
+	
+	/**
+	 * A method used to initialize our audit, the audit is tasked with verifying that all modules
+	 * are still allowed to be registered, if not this method will handle removing them from our
+	 * registry, if a module is not registered by is allowed to be registered, this method will
+	 * also handle registering that module into the registry.
+	 *
+	 * @since 1.2
+	 */
+	public void initializeAudit()
+	{
+		initializeCorrection();
+		
+		// ADD MISSING MODULES TO REGISTRY
+		for (Module module : getMasterList()) {
+			if (module.isEnabled() && !module.isRegistered()) {
+				addToRegistry(module);
+				
+				if (getRegisteredList().contains(module)) {
+					if (!getRegisteredList().contains(module)) {
+						plugin.debug("module.register.success", module.getFullIdentifier());
+					}
+				}
 			}
 			
-			Bukkit.getScheduler().runTaskLater(plugin, () ->
-			{
-				for (Object module : getRegisteredList()) {
-					((Module) module).initialize();
-				}
-				plugin.log("module.register.total", getCount());
+			for (OfflinePlayer current : Bukkit.getOfflinePlayers()) {
+				File moduleFile = module.getModuleFile(current);
+				File inactiveFile = api.toFile(getUserDirectory(current), "inactive/" + moduleFile.getName());
 				
-			}, 0);
-		}
-		catch (IOException ex) {
-			plugin.getReport().create(getClass(), ex, false);
-		}
-	}
-	
-	/**
-	 * A method used to reload our configurations, this method will create a config if one does not exist.
-	 *
-	 * @since 1.2
-	 */
-	public void reloadConfig()
-	{
-		shutdown();
-		plugin.registerModules();
-		runTask();
-	}
-	
-	/**
-	 * A method used to initiate our shutdown sequence.
-	 *
-	 * @since 1.2
-	 */
-	public void shutdown()
-	{
-		for (Object module : getRegisteredList()) {
-			if (module instanceof Scheduler) {
-				((Scheduler) module).shutdown();
+				if (moduleFile.exists() && !module.isEnabled()) {
+					api.relocateIndex(moduleFile, inactiveFile);
+				}
+				
+				if (inactiveFile.exists() && module.isEnabled()) {
+					api.relocateIndex(inactiveFile, moduleFile);
+				}
+				
+				if (inactiveFile.getParentFile().exists()) {
+					if (Objects.requireNonNull(inactiveFile.getParentFile().listFiles()).length == 0) {
+						if (!inactiveFile.getParentFile().delete()) {
+							throw new FailedMethodException("Failed to delete inactive directory for ", current.getName());
+						}
+					}
+				}
 			}
 		}
 		
-		getRegisteredList().clear();
-		getMasterList().clear();
-	}
-	
-	/**
-	 * A method used to print a message to a modules file.
-	 *
-	 * @param targetFile Target file
-	 * @param message Target message
-	 * @since 1.2
-	 */
-	protected void printToFile(File targetFile, String message)
-	{
-		try {
-			api.createParent(targetFile);
-			
-			FileWriter writer = new FileWriter(targetFile, true);
-			PrintWriter printer = new PrintWriter(writer);
-			printer.println(api.format("[{0}] {1}", api.getTimeNow(), message));
-			writer.close();
-		}
-		catch (IOException ex) {
-			plugin.getReport().create(getClass(), ex, false);
-		}
-	}
-	
-	/**
-	 * A method used to print a message to a modules file.
-	 *
-	 * @param targetFiles Target file array
-	 * @param message Target message
-	 * @since 1.2
-	 */
-	protected void printToFile(File @NotNull [] targetFiles, String message)
-	{
-		try {
-			for (File currentFile : targetFiles) {
-				api.createParent(currentFile);
+		// REMOVE REGISTERED MODULES WHEN NO LONGER REGISTERED
+		for (Module module : getMasterList()) {
+			if (!module.isEnabled() && module.isRegistered()) {
+				getRegisteredList().remove(module);
 				
-				FileWriter writer = new FileWriter(currentFile, true);
-				PrintWriter printer = new PrintWriter(writer);
-				printer.println(api.format("[{0}] {1}", api.getTimeNow(), message));
-				writer.close();
+				if (module instanceof Scheduler) {
+					((Scheduler) module).cancel();
+				}
+				
+				module.removeListener();
+				
+				if (!getRegisteredList().contains(module)) {
+					plugin.debug("module.unregister.success", module.getFullIdentifier());
+				}
 			}
 		}
-		catch (IOException ex) {
-			plugin.getReport().create(getClass(), ex, false);
+		plugin.log("module.register.total", getCount());
+	}
+	
+	/**
+	 * A method used to correct all existing player files to match the desired configuration. It will rename
+	 * the directories to use UUID's or Player names accordingly.
+	 *
+	 */
+	public void initializeCorrection()
+	{
+		boolean useUUID = getBoolean(Config.USE_UUID);
+		int changes = 0;
+		
+		// ITERATE THROUGH ALL PLAYER AND CORRECT THE DIRECTORIES
+		for (OfflinePlayer current : Bukkit.getOfflinePlayers()) {
+			Validate.notNull(current.getUniqueId());
+			Validate.notNull(current.getName());
+			
+			File uuidDir    = Util.toFile(getLogDirectory(), api.toString(current.getUniqueId()));
+			File playerDir  = Util.toFile(getLogDirectory(), current.getName());
+			
+			if (useUUID && playerDir.exists()) {
+				api.renameIndex(playerDir, uuidDir.getName());
+				changes++;
+			}
+			if (!useUUID && uuidDir.exists()) {
+				api.renameIndex(uuidDir, playerDir.getName());
+				changes++;
+			}
+		}
+		
+		if (changes > 0) {
+			plugin.debug("user.correction.total", changes);
 		}
 	}
 	
 	/**
-	 * A method used to add a module into our registry.
+	 * A method used to register a module into our registry. If the module is null or invalid, this method
+	 * will throw an exception.
 	 *
+	 * @throws IllegalArgumentException Thrown if the module is null.
 	 * @param module Target module
 	 * @since 1.2
 	 */
-	protected void addToRegistry(Module module)
+	public void addToRegistry(Module module)
 	{
-		if (!getRegisteredList().contains(module)) {
-			getRegisteredList().add(module);
-			
-			Validate.isTrue(getRegisteredList().contains(module));
+		Validate.notNull(module, "Could not add to registry, The module defined cannot be null!");
+		
+		if (!registered.contains(module)) {
+			registered.add(module);
 			
 			if (getRegisteredList().contains(module)) {
-				plugin.debug(getClass(), "module.register.success", module.getIdentifier());
+				plugin.debug("module.register.success", module.getFullIdentifier());
 			}
 		}
 	}
 	
 	/**
-	 * A method used to add a module into our master list.
+	 * A method used to return our registry list. If the list does not contain any modules, this method
+	 * will automatically register all modules available in our {@link #master} list.
 	 *
-	 * @param module Target module
+	 * @return All values housed in our registered list.
 	 * @since 1.2
 	 */
-	protected void addToMaster(Module module)
+	public ArrayList<Module> getRegisteredList()
 	{
-		if (!getMasterList().contains(module)) {
-			getMasterList().add(module);
+		if (registered.size() == 0) {
+			for (Module current : getMasterList()) {
+				if (current.isEnabled()) {
+					addToRegistry(current);
+				}
+			}
 		}
-		Validate.isTrue(getMasterList().contains(module));
+		return registered;
 	}
 	
 	/**
-	 * A method used to return an instance of this class' required configuration file
+	 * A method used to return the identifier list of all registered modules.
 	 *
-	 * @return Configuration map
+	 * @return Registered modules identifiers
 	 * @since 1.2
 	 */
-	protected FileConfiguration getConfig()      { return yaml.getConfig();                                          }
+	public String[] toList()
+	{
+		String[] modules = new String[getRegisteredList().size()];
+		for (int i = 0; i < getRegisteredList().size(); i++) {
+			modules[i] = getRegisteredList().get(i).getIdentifier().replace("-module", "");
+		}
+		return modules;
+	}
 	
 	/**
-	 * A method used to return the registered list of modules, the registered list is defined as
-	 * a list that contains only operational modules.
+	 * This method is used to return a module based on a partial string. If no match is found, this method
+	 * will always return null until found.
 	 *
-	 * @return The registered list
+	 * @param partial Partial name
+	 * @return Requested module.
 	 * @since 1.2
 	 */
-	public ArrayList<Object> getRegisteredList() { return registered;                                                }
+	public Module getModuleByName(String partial)
+	{
+		for (Module module : getMasterList()) {
+			if (module.getFullIdentifier().toLowerCase().contains(partial)) {
+				return module;
+			}
+		}
+		return null;
+	}
 	
 	/**
-	 * A method used to return the master list of modules, the master list is defined as
-	 * a list that contains ALL Available modules, indiscriminately of operation status.
+	 * A method used to return the total count of modules registered in this plugin.
 	 *
-	 * @return The master list
+	 * @return Total count
 	 * @since 1.2
 	 */
-	public ArrayList<Object> getMasterList()     { return master;                                                    }
+	public String getCount()                  { return getRegisteredList().size() + "/" + getMasterList().size(); }
 	
 	/**
-	 * A method used to return a player directory for a module file.
+	 * A method used to return the total count for a specific list, this will only return the amount
+	 * for that list only.
+	 *
+	 * @param list Target list
+	 * @return List total
+	 * @since 1.2
+	 */
+	public String getCount(@NotNull ArrayList<Module> list) { return api.toString(list.size()); }
+	
+	/**
+	 * A method used to return our log directory.
+	 *
+	 * @return Our root log directory
+	 * @since 1.2
+	 */
+	public File getLogDirectory()             { return Util.toFile("log-files");                           }
+	
+	/**
+	 * A method used to return the required user directory, this method automatically configures based on the
+	 * configuration's requirements.
 	 *
 	 * @param player Target player
 	 * @return Player directory
 	 * @since 1.2
 	 */
-	public File getPlayerDir(OfflinePlayer player)
+	public File getUserDirectory(Player player)
 	{
-		if (getConfig().getBoolean(Config.USE_UUID.getPath())) {
-			//TO UUID
-			if (Util.toFile(moduleDir, player.getName()).exists()) {
-				api.renameFile(Util.toFile(moduleDir, player.getName()), player.getUniqueId().toString());
-			}
+		if (!getBoolean(Config.USE_UUID)) {
+			return Util.toFile(getLogDirectory(), player.getName());
 		}
-		else {
-			// TO NAME
-			if (Util.toFile(moduleDir, player.getUniqueId().toString()).exists()) {
-				api.renameFile(Util.toFile(moduleDir, player.getUniqueId().toString()), player.getName());
-			}
-		}
-		
-		if (getConfig().getBoolean(Config.USE_UUID.getPath())) {
-			return Util.toFile(moduleDir, player.getUniqueId().toString());
-		}
-		return Util.toFile(moduleDir, Objects.requireNonNull(player.getName()));
+		return Util.toFile(getLogDirectory(), api.toString(player.getUniqueId()));
 	}
 	
 	/**
-	 * A method used to return the current count of modules running.
+	 * A method used to return the required user directory, this method automatically configures based on the
+	 * configuration's requirements.
 	 *
-	 * @return Operation count.
+	 * @param player Target player
+	 * @return Player directory
 	 * @since 1.2
 	 */
-	public String getCount()                     { return getRegisteredList().size() + "/" + getMasterList().size(); }
+	public File getUserDirectory(OfflinePlayer player)
+	{
+		if (!getBoolean(Config.USE_UUID)) {
+			return Util.toFile(getLogDirectory(), player.getName());
+		}
+		return Util.toFile(getLogDirectory(), api.toString(player.getUniqueId()));
+	}
 }
