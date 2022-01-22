@@ -116,7 +116,6 @@ public class Configuration
 		if (defConfigStream == null) {
 			return;
 		}
-		
 		config.setDefaults(YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, Charsets.UTF_8)));
 	}
 	
