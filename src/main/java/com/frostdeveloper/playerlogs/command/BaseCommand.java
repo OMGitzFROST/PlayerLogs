@@ -111,14 +111,14 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	private void executeReload(CommandSender sender)
 	{
 		if (Permission.isPermitted(sender, Permission.CMD_RELOAD)) {
+			plugin.initializeAudit();
+			locale.initializeAudit();
+			module.initializeAudit();
+			
 			// CONFIGURATION RELOAD
 			config.reload();
 			locale.reload();
 			module.reload();
-			
-			// PREFORM AUDITS
-			locale.initializeAudit();
-			module.initializeAudit();
 			
 			if (sender instanceof Player) {
 				sendMessage(sender, "plugin.reload.success");
