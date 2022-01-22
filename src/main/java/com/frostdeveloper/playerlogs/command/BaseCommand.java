@@ -117,6 +117,7 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 			module.reload();
 			
 			// PREFORM AUDITS
+			locale.initializeAudit();
 			module.initializeAudit();
 			
 			if (sender instanceof Player) {
