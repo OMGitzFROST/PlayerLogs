@@ -69,8 +69,7 @@ public class ModuleManager extends Configuration implements Manager
 			for (Module current : getRegisteredList()) {
 				current.initialize();
 			}
-			// VERIFY THAT ALL PLAYER FILES AND MODULES ARE CORRECTLY CONFIGURED
-			initializeAudit();
+			plugin.log("module.register.total", getCount());
 		}, 0);
 	}
 	
