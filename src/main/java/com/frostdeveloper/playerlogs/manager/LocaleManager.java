@@ -37,10 +37,9 @@ public class LocaleManager implements Manager
 	public void initialize()
 	{
 		if (config.getBoolean(Config.CUSTOM_MESSAGE) && !messageFile.exists()) {
-			plugin.saveResource(messageFile.getName(), false);
+			getDefaultMap().store(messageFile);
 			plugin.log("index.create.success", messageFile.getName());
 		}
-		initializeAudit();
 	}
 	
 	/**
@@ -160,4 +159,12 @@ public class LocaleManager implements Manager
 		}
 		return api.toLocale("en");
 	}
+	
+	/**
+	 * A method used to return an instance of our message file.
+	 *
+	 * @return Message file instance
+	 * @since 1.2
+	 */
+	public File getFile() { return messageFile; }
 }
