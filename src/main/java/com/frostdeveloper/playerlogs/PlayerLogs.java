@@ -1,27 +1,30 @@
 package com.frostdeveloper.playerlogs;
 
 import com.frostdeveloper.api.FrostAPI;
+import com.frostdeveloper.api.handler.Report;
 import com.frostdeveloper.playerlogs.command.BaseCommand;
-import com.frostdeveloper.playerlogs.manager.*;
-import com.frostdeveloper.playerlogs.module.*;
+import com.frostdeveloper.playerlogs.manager.CommandManager;
+import com.frostdeveloper.playerlogs.manager.ConfigManager;
+import com.frostdeveloper.playerlogs.manager.LocaleManager;
+import com.frostdeveloper.playerlogs.manager.ModuleManager;
+import com.frostdeveloper.playerlogs.service.MetricsService;
+import com.frostdeveloper.playerlogs.service.UpdateService;
+import com.frostdeveloper.playerlogs.util.Util;
+import me.clip.placeholderapi.PlaceholderAPIPlugin;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import java.io.File;
 import java.util.logging.Level;
 
-/**
- * A class defined as this plugin's main class, It's used to handle and execute all
- * methods and features found within all classes.
- *
- * @author OMGitzFROSt
- * @since 1.0
- */
-public final class PlayerLogs extends JavaPlugin
+public class PlayerLogs extends JavaPlugin
 {
-	// CORE CLASS INSTANCES
+	// CLASS INSTANCES
 	private static PlayerLogs instance;
+	private FrostAPI api;
 	
 	/**
 	 * A method invoked on plugin enable.
@@ -32,86 +35,46 @@ public final class PlayerLogs extends JavaPlugin
 	public void onEnable()
 	{
 		try {
-			// INITIALIZE CORE'S
 			instance = this;
+			api      = FrostAPI.getInstance();
 			getLogger().setFilter(new LogFilter());
 			
-			// RUN SERVICE TASKS
-			getUpdateManager().runTask();
-			getMetricsManager().runTask();
+			getLocaleManager().initialize();
+			getConfigManager().initialize();
+			getModuleManager().initialize();
 			
-			// CREATE FILES
-			getConfigManager().createFile();
-			getLocaleManager().createFile();
+			getUpdateManager().initialize();
+			getMetricsService().initialize();
 			
-			// RUN MANAGER TASKS
-			getModuleManager().runTask();
-			
-			// MODULE INSTANCES
-			BreakModule breakModule = new BreakModule();
-			ChatModule chatModule = new ChatModule();
-			CommandModule commandModule = new CommandModule();
-			DeathModule deathModule = new DeathModule();
-			JoinModule joinModule = new JoinModule();
-			PlaceModule placeModule = new PlaceModule();
-			QuitModule quitModule = new QuitModule();
-			TeleportModule teleportModule = new TeleportModule();
-			WorldChangeModule worldChangeModule = new WorldChangeModule();
-			EnchantModule enchantModule = new EnchantModule();
-			
-			// REGISTER MODULES
-			breakModule.registerModule();
-			chatModule.registerModule();
-			commandModule.registerModule();
-			deathModule.registerModule();
-			joinModule.registerModule();
-			placeModule.registerModule();
-			quitModule.registerModule();
-			teleportModule.registerModule();
-			worldChangeModule.registerModule();
-			enchantModule.registerModule();
-			log("module.register.total", getModuleManager().getRegisteredTotal(), getModuleManager().getTotal());
-			
-			// REGISTER EVENTS
-			getServer().getPluginManager().registerEvents(new UpdateNotifier(), this);
+			if (isPAPIHooked()) {
+				Plugin papi = getPlugin(PlaceholderAPIPlugin.class);
+				File serverExpansion = api.toFile(papi.getDataFolder(), "expansions/server-expansion.jar");
+				File playerExpansion = api.toFile(papi.getDataFolder(), "expansions/player-expansion.jar");
+				
+				if (!serverExpansion.exists()) {
+					log(Level.WARNING, "papi.expansion.missing", "server");
+				}
+				
+				if (!playerExpansion.exists()) {
+					log(Level.WARNING, "papi.expansion.missing", "player");
+				}
+				log("plugin.dependency.hooked", papi.getName());
+			}
 			
 			// REGISTER COMMANDS
-			Objects.requireNonNull(getCommand("playerlog")).setExecutor(new BaseCommand());
-			Objects.requireNonNull(getCommand("playerlog")).setTabCompleter(new BaseCommand());
+			getCommandManager().register("playerlog", new BaseCommand(), true);
+			
+			if (isDeveloperMode()) {
+				log(Level.WARNING, "WARNING YOU ARE USING A UNSTABLE VERSION OF THIS PLUGIN");
+				log(Level.WARNING, "We recommend you use a stable version since this version");
+				log(Level.WARNING, "may contain a lot of bugs or issues. Thank you.");
+			}
 			
 			log("plugin.enable.success", getDescription().getVersion());
-			
-			// LOG IF THIS BUILD IS IN DEVELOPER MODE
-			if (isDeveloperMode()) {
-				log("WARNING! THIS PLUGIN IS IN DEVELOPER MODE and may contain bugs and errors");
-				log("Please notify the developer of this issue, Use this plugin at your own risk.");
-			}
 		}
 		catch (Exception ex) {
 			log("plugin.enable.failed", getDescription().getVersion());
-			ReportManager.createReport(getClass(), ex, true);
-		}
-	}
-	
-	/**
-	 * A method invoked on plugin disable.
-	 *
-	 * @since 1.1
-	 */
-	@Override
-	public void onDisable()
-	{
-		try {
-			getModuleManager().unloadModules();
-			
-			getUpdateManager().stopTask();
-			getMetricsManager().stopTask();
-			
-			log("plugin.disable.success", getFrostApi().getVersion());
-		}
-		catch (Exception ex) {
-			log("plugin.disable.failed", getDescription().getVersion());
-			ReportManager.createReport(getClass(), ex, true);
+			getReport().create(ex);
 		}
 	}
 	
@@ -120,7 +83,16 @@ public final class PlayerLogs extends JavaPlugin
 	 *
 	 * @return Developer mode
 	 */
-	public boolean isDeveloperMode() { return false; }
+	public boolean isDeveloperMode() { return true;                                                                 }
+	
+	/**
+	 * A method used to identify if we successfully hooked into PlaceholderAPI, this
+	 * method will return true or false depending on its status.
+	 *
+	 * @return Dependency hook status.
+	 * @since 1.2
+	 */
+	public boolean isPAPIHooked()    { return Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null; }
 	
 	/*
 	 * STANDARD LOGGERS
@@ -135,7 +107,7 @@ public final class PlayerLogs extends JavaPlugin
 	 */
 	public void log(String key, Object... param)
 	{
-		getLogger().log(Level.INFO, getFrostApi().format(true, getLocaleManager().getMessage(key)), param);
+		getLogger().log(Level.INFO, getFrostAPI().format(true, getLocaleManager().getMessage(key)), param);
 	}
 	
 	/**
@@ -148,7 +120,7 @@ public final class PlayerLogs extends JavaPlugin
 	 */
 	public void log(Level level, String key, Object... param)
 	{
-		getLogger().log(level, getFrostApi().format(true, getLocaleManager().getMessage(key)), param);
+		getLogger().log(level, getFrostAPI().format(true, getLocaleManager().getMessage(key)), param);
 	}
 	
 	/**
@@ -161,8 +133,8 @@ public final class PlayerLogs extends JavaPlugin
 	 */
 	public void log(@NotNull Class<?> cl, String key, Object... param)
 	{
-		String preMSG = getFrostApi().format("[{0}] ", cl.getSimpleName());
-		getLogger().log(Level.INFO, preMSG + getFrostApi().format(true, getLocaleManager().getMessage(key), param));
+		String preMSG = getFrostAPI().format("[{0}] ", cl.getSimpleName());
+		getLogger().log(Level.INFO, preMSG + getFrostAPI().format(true, getLocaleManager().getMessage(key), param));
 	}
 	
 	/**
@@ -176,8 +148,8 @@ public final class PlayerLogs extends JavaPlugin
 	 */
 	public void log(@NotNull Class<?> cl, Level level, String key, Object... param)
 	{
-		String preMSG = getFrostApi().format("[{0}] ", cl.getSimpleName());
-		getLogger().log(level, preMSG + getFrostApi().format(true, getLocaleManager().getMessage(key), param));
+		String preMSG = getFrostAPI().format("[{0}] ", cl.getSimpleName());
+		getLogger().log(level, preMSG + getFrostAPI().format(true, getLocaleManager().getMessage(key), param));
 	}
 	
 	/*
@@ -192,7 +164,7 @@ public final class PlayerLogs extends JavaPlugin
 	 */
 	public void debug(@NotNull Object key)
 	{
-		getLogger().log(Level.INFO, "[DEBUG] " + getFrostApi().format(getLocaleManager().getMessage(key.toString())));
+		getLogger().log(Level.INFO, "[DEBUG] " + getFrostAPI().format(true, getLocaleManager().getMessage(key.toString())));
 	}
 	
 	/**
@@ -204,7 +176,7 @@ public final class PlayerLogs extends JavaPlugin
 	 */
 	public void debug(String key, Object... param)
 	{
-		getLogger().log(Level.INFO, "[DEBUG] " + getFrostApi().format(getLocaleManager().getMessage(key)), param);
+		getLogger().log(Level.INFO, "[DEBUG] " + getFrostAPI().format(true, getLocaleManager().getMessage(key)), param);
 	}
 	
 	/**
@@ -217,7 +189,7 @@ public final class PlayerLogs extends JavaPlugin
 	 */
 	public void debug(Level level, String key, Object... param)
 	{
-		getLogger().log(level, "[DEBUG] " + getFrostApi().format(getLocaleManager().getMessage(key)), param);
+		getLogger().log(level, "[DEBUG] " + getFrostAPI().format(true, getLocaleManager().getMessage(key)), param);
 	}
 	
 	/**
@@ -230,7 +202,7 @@ public final class PlayerLogs extends JavaPlugin
 	 */
 	public void debug(@NotNull Class<?> cl, String key, Object... param)
 	{
-		String preMSG = getFrostApi().format("[{0}] [DEBUG] ", cl.getSimpleName());
+		String preMSG = getFrostAPI().format(true, "[{0}] [DEBUG] ", cl.getSimpleName());
 		getLogger().log(Level.INFO, preMSG + getLocaleManager().getMessage(key), param);
 	}
 	
@@ -245,7 +217,7 @@ public final class PlayerLogs extends JavaPlugin
 	 */
 	public void debug(@NotNull Class<?> cl, Level level, String key, Object... param)
 	{
-		String preMSG = getFrostApi().format("[{0}] [DEBUG] ", cl.getSimpleName());
+		String preMSG = getFrostAPI().format(true, "[{0}] [DEBUG] ", cl.getSimpleName());
 		getLogger().log(level, preMSG + getLocaleManager().getMessage(key), param);
 	}
 	
@@ -254,12 +226,52 @@ public final class PlayerLogs extends JavaPlugin
 	 */
 	
 	/**
-	 * A method used to return an instance of the main class
+	 * A method used to return an instance of the main class.
 	 *
-	 * @return Main class
+	 * @return An instance of the main class
 	 * @since 1.0
 	 */
-	public static PlayerLogs getInstance()             { return instance;                    }
+	public static PlayerLogs getInstance()
+	{
+		if (instance == null) {
+			instance = new PlayerLogs();
+		}
+		return instance;
+	}
+	
+	/**
+	 * A method used to return an instance of the FrostAPI class
+	 *
+	 * @return FrostAPI class
+	 * @since 1.0
+	 */
+	public FrostAPI getFrostAPI()                      { return api;                         }
+	
+	/**
+	 * A method used to return an instance of our reporting handler.
+	 *
+	 * @return Report handler
+	 * @since 1.2
+	 */
+	public Report getReport() { return new Report(Util.toFile("crash-report/report.log")); }
+
+	/**
+	 * A method used to return an instance of the MetricsService class
+	 *
+	 * @return MetricsService class
+	 * @since 1.0
+	 */
+	@Contract (" -> new")
+	public @NotNull MetricsService getMetricsService() { return new MetricsService();        }
+
+	/**
+	 * A method used to return an instance of the UpdateService class
+	 *
+	 * @return UpdateService class
+	 * @since 1.0
+	 */
+	@Contract (" -> new")
+	public @NotNull UpdateService getUpdateManager()   { return new UpdateService();         }
 	
 	/**
 	 * A method used to get an instance of the ModuleManager class
@@ -268,17 +280,8 @@ public final class PlayerLogs extends JavaPlugin
 	 * @since 1.1
 	 */
 	@Contract (" -> new")
-	public @NotNull ModuleManager getModuleManager()   { return new ModuleManager();         }
-	
-	/**
-	 * A method used to return an instance of the FrostAPI class
-	 *
-	 * @return FrostAPI class
-	 * @since 1.0
-	 */
-	@Contract (value = " -> new", pure = true)
-	public @NotNull FrostAPI getFrostApi()             { return new FrostAPI(this);          }
-	
+	public @NotNull ModuleManager getModuleManager()   { return new ModuleManager("modules.yml", true); }
+
 	/**
 	 * A method used to return an instance of the ConfigManager class
 	 *
@@ -286,8 +289,8 @@ public final class PlayerLogs extends JavaPlugin
 	 * @since 1.0
 	 */
 	@Contract (" -> new")
-	public @NotNull ConfigManager getConfigManager()   { return new ConfigManager();         }
-	
+	public @NotNull ConfigManager getConfigManager() { return new ConfigManager("config.yml", true); }
+
 	/**
 	 * A method used to return an instance of the LocaleManager class
 	 *
@@ -298,29 +301,10 @@ public final class PlayerLogs extends JavaPlugin
 	public @NotNull LocaleManager getLocaleManager()   { return new LocaleManager();         }
 	
 	/**
-	 * A method used to return an instance of the MetricsManager class
+	 * A method used to return an instance of the CommandManager class
 	 *
-	 * @return MetricsManager class
-	 * @since 1.0
+	 * @return CommandManager class
+	 * @since 1.2
 	 */
-	@Contract (" -> new")
-	public @NotNull MetricsManager getMetricsManager() { return new MetricsManager();        }
-	
-	/**
-	 * A method used to return an instance of the CacheManager class
-	 *
-	 * @return CacheManager class
-	 * @since 1.1
-	 */
-	@Contract (" -> new")
-	public @NotNull CacheManager getCacheManager()     { return new CacheManager();          }
-	
-	/**
-	 * A method used to return an instance of the UpdateManager class
-	 *
-	 * @return UpdateManager class
-	 * @since 1.0
-	 */
-	@Contract (" -> new")
-	public @NotNull UpdateManager getUpdateManager()   { return new UpdateManager();         }
+	public @NotNull CommandManager getCommandManager() { return new CommandManager();        }
 }
