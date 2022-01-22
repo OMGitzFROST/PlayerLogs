@@ -1,6 +1,7 @@
 package com.frostdeveloper.playerlogs;
 
 import com.frostdeveloper.api.FrostAPI;
+import com.frostdeveloper.api.exception.FailedMethodException;
 import com.frostdeveloper.api.handler.Report;
 import com.frostdeveloper.playerlogs.command.BaseCommand;
 import com.frostdeveloper.playerlogs.manager.CommandManager;
@@ -75,6 +76,30 @@ public class PlayerLogs extends JavaPlugin
 		catch (Exception ex) {
 			log("plugin.enable.failed", getDescription().getVersion());
 			getReport().create(ex);
+		}
+	}
+	
+	/**
+	 * A method used to verify that all requirements are met for the plugin to work.
+	 *
+	 * @since 1.2
+	 */
+	public void initializeAudit()
+	{
+		if (!getDataFolder().exists() && !getDataFolder().mkdirs()) {
+			throw new FailedMethodException("Failed to create our data-folder!");
+		}
+		
+		if (!getConfigManager().getFile().exists()) {
+			getConfigManager().initialize();
+		}
+		
+		if (!getLocaleManager().getFile().exists()) {
+			getLocaleManager().initialize();
+		}
+		
+		if (!getModuleManager().getFile().exists()) {
+			getModuleManager().initialize();
 		}
 	}
 	
