@@ -4,7 +4,7 @@ import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.manager.ConfigManager;
-import com.frostdeveloper.playerlogs.manager.LocaleManager;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class is designed to add methods that are repetitive but are unique to this plugin.
@@ -92,22 +93,46 @@ public class Util
 	/**
 	 * A method used to build a header from a list of strings
 	 *
-	 * @param input Target input
+	 * @param length The desired length of the header
 	 * @param character Desired character
 	 * @return Built header
 	 * @since 1.2
 	 */
-	public static @NotNull String buildHeader(@NotNull List<String> input, char character)
+	public static @NotNull String buildHeader(int length, char character)
 	{
-		if (input.stream().map(String::length).max(Integer::compareTo).isPresent()) {
-			int headerSize = input.stream().map(String::length).max(Integer::compareTo).get();
-			if (headerSize > 0) {
-				char[] array = new char[headerSize];
-				Arrays.fill(array, character);
-				return new String(array);
-			}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < length; i++) {
+			sb.append(character);
 		}
-		return "";
+		return sb.toString();
+	}
+	
+	/**
+	 * This method is used to build a body for a header, it will take the defined length and create empty space
+	 * between the body to fit the content centered.
+	 *
+	 * @param length Target length
+	 * @param body Target body
+	 * @param ends Ends which the string starts and end
+	 * @return Centered string.
+	 * @since 1.2
+	 */
+	public static @NotNull String buildBody(int length, String body, char ends)
+	{
+		return ends + StringUtils.center(body, length - 2) + ends;
+	}
+	
+	/**
+	 * A method used to get the longest string in a list.
+	 *
+	 * @param input Target list
+	 * @return Longest string inside list
+	 * @since 1.2
+	 */
+	public static int getLongestSize(@NotNull List<String> input)
+	{
+		Optional<String> longest = input.stream().max((e1, e2) -> e1.length() > e2.length() ? -1 : 0);
+		return longest.map(String::length).orElse(0);
 	}
 	
 	/**
