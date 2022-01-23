@@ -12,7 +12,7 @@ commands:
     playerlog:
         aliases: [plog]
         description: Base command for this plugin.
-        usage: /{0} [reload | update]
+        usage: /{0} <args>
 
 permissions:
     playerlogs.command.*:
@@ -21,10 +21,18 @@ permissions:
         children:
             playerlogs.command.update: true
             playerlogs.command.reload: true
+            playerlogs.command.module: true
+            playerlogs.command.module.info: true
     playerlogs.command.update:
         description: Grants access to the '/playerlog update' command.
         default: false
     playerlogs.command.reload:
         description: Grants access to the '/playerlog reload' command.
+        default: false
+    playerlogs.command.module:
+        description: Grants access to the '/playerlog module' command.
+        default: false
+    playerlogs.command.module.info:
+        description: Grants access to the '/player module info <module>' command.
         default: false
         
