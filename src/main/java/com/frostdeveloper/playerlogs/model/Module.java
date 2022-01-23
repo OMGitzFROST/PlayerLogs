@@ -4,6 +4,7 @@ import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlogs.PlayerLogs;
 import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.definition.Variable;
+import com.frostdeveloper.playerlogs.manager.LocaleManager;
 import com.frostdeveloper.playerlogs.manager.ModuleManager;
 import com.frostdeveloper.playerlogs.util.Util;
 import org.bukkit.Bukkit;
@@ -16,6 +17,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,9 +29,10 @@ import java.util.List;
 public abstract class Module
 {
 	// CLASS INSTANCES
-	protected final PlayerLogs plugin = PlayerLogs.getInstance();
-	protected final FrostAPI api = plugin.getFrostAPI();
+	protected final PlayerLogs plugin     = PlayerLogs.getInstance();
+	protected final FrostAPI api          = plugin.getFrostAPI();
 	protected final ModuleManager manager = plugin.getModuleManager();
+	protected final LocaleManager locale  = plugin.getLocaleManager();
 	
 	/**
 	 * A method used to return the message assigned to a module
@@ -62,6 +65,8 @@ public abstract class Module
 	 */
 	public abstract void removeListener();
 	
+	/* EXECUTABLE METHODS */
+	
 	/**
 	 * A method is called once the module is registered, and initializes the assigned arithmetic.
 	 *
@@ -70,26 +75,20 @@ public abstract class Module
 	public void initialize() { Bukkit.getServer().getPluginManager().registerEvents((Listener) this, plugin); }
 	
 	/**
-	 * A method used to return the modules file,
+	 * A method used to get a modules' information as an array.
 	 *
-	 * @param player Target player
-	 * @return A valid module file
+	 * @return A Modules' information
+	 * @since 1.2
 	 */
-	public File getModuleFile(Player player)
+	public ArrayList<String> getInformation()
 	{
-		return Util.toFile(manager.getUserDirectory(player), getFullIdentifier() + ".log");
+		ArrayList<String> description = new ArrayList<>();
+		description.add(api.format(locale.getMessage("module.description.identifier"), getFullIdentifier()));
+		description.add(api.format(locale.getMessage("module.description.registered"), isRegistered()));
+		return description;
 	}
 	
-	/**
-	 * A method used to return the modules file,
-	 *
-	 * @param player Target offline player
-	 * @return A valid module file
-	 */
-	public File getModuleFile(OfflinePlayer player)
-	{
-		return Util.toFile(manager.getUserDirectory(player), getFullIdentifier() + ".log");
-	}
+	/* BOOLEAN METHODS */
 	
 	/**
 	 * A method used to determine whether a module is registered.
@@ -98,6 +97,8 @@ public abstract class Module
 	 * @since 1.2
 	 */
 	public boolean isRegistered() { return  manager.getRegisteredList().contains(this); }
+	
+	/* GETTER METHODS */
 	
 	/**
 	 * A method used to return the identifier for a module. The identifier serves as the name of
@@ -123,6 +124,41 @@ public abstract class Module
 		String rawModuleName = this.getClass().getSimpleName().toLowerCase();
 		return rawModuleName.replace("module", "-module");
 	}
+	
+	/**
+	 * A method used to return a modules name
+	 *
+	 * @return Module name
+	 * @since 1.2
+	 */
+	public String getName()
+	{
+		return getIdentifier().substring(0, 1).toUpperCase() + getIdentifier().substring(1) + " Module";
+	}
+	
+	/**
+	 * A method used to return the modules file,
+	 *
+	 * @param player Target player
+	 * @return A valid module file
+	 */
+	public File getModuleFile(Player player)
+	{
+		return Util.toFile(manager.getUserDirectory(player), getFullIdentifier() + ".log");
+	}
+	
+	/**
+	 * A method used to return the modules file,
+	 *
+	 * @param player Target offline player
+	 * @return A valid module file
+	 */
+	public File getModuleFile(OfflinePlayer player)
+	{
+		return Util.toFile(manager.getUserDirectory(player), getFullIdentifier() + ".log");
+	}
+	
+	/* PRINT METHODS */
 	
 	/**
 	 * A method used to print a modules message to its log file.
