@@ -99,7 +99,7 @@ public class PlayerLogs extends JavaPlugin
 		}
 		
 		if (!getModuleManager().getFile().exists()) {
-			getModuleManager().initialize();
+			getModuleManager().initialize(false);
 		}
 	}
 	
