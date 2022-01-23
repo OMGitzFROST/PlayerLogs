@@ -6,7 +6,6 @@ import com.frostdeveloper.playerlogs.util.Placeholder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,7 +52,7 @@ public class WorldModule extends Module implements Listener
 	 * @since 1.2
 	 */
 	@Override
-	public String getMessage()    { return manager.getString(message);                                  }
+	public String getMessage()           { return manager.getString(message);                         }
 	
 	/**
 	 * A method used to return the message list assigned to the module.
@@ -62,7 +61,7 @@ public class WorldModule extends Module implements Listener
 	 * @since 1.2
 	 */
 	@Override
-	public List<String> getMessageList() { return manager.getStringList(message);                       }
+	public List<String> getMessageList() { return manager.getStringList(message);                     }
 	
 	/**
 	 * A method used to return whether a module is enabled
@@ -71,7 +70,7 @@ public class WorldModule extends Module implements Listener
 	 * @since 1.2
 	 */
 	@Override
-	public boolean isEnabled()    { return manager.getBoolean(enabled);                                 }
+	public boolean isEnabled()           { return manager.getBoolean(enabled);                        }
 	
 	/**
 	 * A method used to return the active handler list for a module.
@@ -79,5 +78,5 @@ public class WorldModule extends Module implements Listener
 	 * @since 1.2
 	 */
 	@Override
-	public void removeListener()  { BlockBreakEvent.getHandlerList().unregister(this);                  }
+	public void removeListener()         { PlayerChangedWorldEvent.getHandlerList().unregister(this); }
 }
