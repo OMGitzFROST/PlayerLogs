@@ -54,7 +54,17 @@ public class ModuleManager extends Configuration implements Manager
 	 * @since 1.2
 	 */
 	@Override
-	public void initialize()
+	public void initialize() { initialize(true); }
+	
+	/**
+	 * A method used to at the start of the {@link PlayerLogs#onEnable()} method. This method should be used to
+	 * create a configuration file and potentially include patch updates.
+	 *
+	 * @param announce Whether this method log a current module count.
+	 *
+	 * @since 1.2
+	 */
+	public void initialize(boolean announce)
 	{
 		// IF A CONFIG DOES NOT EXIST THIS METHOD WILL CREATE ONE FOR US
 		saveDefaultConfig();
@@ -65,27 +75,7 @@ public class ModuleManager extends Configuration implements Manager
 		}
 		
 		// INITIALIZE ALL REGISTERED MODULES
-		Bukkit.getScheduler().runTaskLater(plugin, () -> {
-			for (Module current : getRegisteredList()) {
-				current.initialize();
-			}
-			plugin.log("module.register.total", getCount());
-		}, 0);
-	}
-	
-	/**
-	 * A method used to return our master list. If the list does not contain any modules, this method
-	 * will automatically register all modules into our {@link #master} list.
-	 *
-	 * @return All values housed in our registered list.
-	 * @since 1.2
-	 */
-	public ArrayList<Module> getMasterList()
-	{
-		if (master.size() == 0) {
-			setModuleList();
-		}
-		return master;
+		Bukkit.getScheduler().runTaskLater(plugin, () -> initializeAudit(announce), 0);
 	}
 	
 	/**
@@ -110,6 +100,40 @@ public class ModuleManager extends Configuration implements Manager
 	}
 	
 	/**
+	 * A method used to return our master list. If the list does not contain any modules, this method
+	 * will automatically register all modules into our {@link #master} list.
+	 *
+	 * @return All values housed in our registered list.
+	 * @since 1.2
+	 */
+	public ArrayList<Module> getMasterList()
+	{
+		if (master.size() == 0) {
+			setModuleList();
+		}
+		return master;
+	}
+	
+	/**
+	 * A method used to return our registry list. If the list does not contain any modules, this method
+	 * will automatically register all modules available in our {@link #master} list.
+	 *
+	 * @return All values housed in our registered list.
+	 * @since 1.2
+	 */
+	public ArrayList<Module> getRegisteredList()
+	{
+		if (registered.size() == 0) {
+			for (Module current : getMasterList()) {
+				if (current.isEnabled()) {
+					addToRegistry(current);
+				}
+			}
+		}
+		return registered;
+	}
+	
+	/**
 	 * A method used to initialize our audit, the audit is tasked with verifying that all modules
 	 * are still allowed to be registered, if not this method will handle removing them from our
 	 * registry, if a module is not registered by is allowed to be registered, this method will
@@ -117,7 +141,19 @@ public class ModuleManager extends Configuration implements Manager
 	 *
 	 * @since 1.2
 	 */
-	public void initializeAudit()
+	public void initializeAudit() { initialize(true); }
+	
+	/**
+	 * A method used to initialize our audit, the audit is tasked with verifying that all modules
+	 * are still allowed to be registered, if not this method will handle removing them from our
+	 * registry, if a module is not registered by is allowed to be registered, this method will
+	 * also handle registering that module into the registry.
+	 *
+	 * @param announce Whether this method log a current module count.
+	 *
+	 * @since 1.2
+	 */
+	public void initializeAudit(boolean announce)
 	{
 		initializeCorrection();
 		
@@ -127,9 +163,7 @@ public class ModuleManager extends Configuration implements Manager
 				addToRegistry(module);
 				
 				if (getRegisteredList().contains(module)) {
-					if (!getRegisteredList().contains(module)) {
-						plugin.debug("module.register.success", module.getFullIdentifier());
-					}
+					module.initialize();
 				}
 			}
 			
@@ -171,7 +205,10 @@ public class ModuleManager extends Configuration implements Manager
 				}
 			}
 		}
-		plugin.log("module.register.total", getCount());
+		
+		if (announce) {
+			plugin.log("module.register.total", getCount());
+		}
 	}
 	
 	/**
@@ -229,25 +266,6 @@ public class ModuleManager extends Configuration implements Manager
 	}
 	
 	/**
-	 * A method used to return our registry list. If the list does not contain any modules, this method
-	 * will automatically register all modules available in our {@link #master} list.
-	 *
-	 * @return All values housed in our registered list.
-	 * @since 1.2
-	 */
-	public ArrayList<Module> getRegisteredList()
-	{
-		if (registered.size() == 0) {
-			for (Module current : getMasterList()) {
-				if (current.isEnabled()) {
-					addToRegistry(current);
-				}
-			}
-		}
-		return registered;
-	}
-	
-	/**
 	 * A method used to return the identifier list of all registered modules.
 	 *
 	 * @return Registered modules identifiers
@@ -262,6 +280,8 @@ public class ModuleManager extends Configuration implements Manager
 		return modules;
 	}
 	
+	/* MODULE GETTERS */
+	
 	/**
 	 * This method is used to return a module based on a partial string. If no match is found, this method
 	 * will always return null until found.
@@ -270,7 +290,7 @@ public class ModuleManager extends Configuration implements Manager
 	 * @return Requested module.
 	 * @since 1.2
 	 */
-	public Module getModuleByName(String partial)
+	public Module getModuleByPartial(String partial)
 	{
 		for (Module module : getMasterList()) {
 			if (module.getFullIdentifier().toLowerCase().contains(partial)) {
@@ -279,6 +299,8 @@ public class ModuleManager extends Configuration implements Manager
 		}
 		return null;
 	}
+	
+	/* GET COUNTS */
 	
 	/**
 	 * A method used to return the total count of modules registered in this plugin.
@@ -297,6 +319,8 @@ public class ModuleManager extends Configuration implements Manager
 	 * @since 1.2
 	 */
 	public String getCount(@NotNull ArrayList<Module> list) { return api.toString(list.size()); }
+	
+	/* GET DIRECTORIES */
 	
 	/**
 	 * A method used to return our log directory.
