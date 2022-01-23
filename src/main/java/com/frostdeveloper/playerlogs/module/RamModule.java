@@ -70,7 +70,7 @@ public class RamModule extends Module implements Listener, Scheduler
 	 * @since 1.2
 	 */
 	@Override
-	public String getMessage()           { return manager.getString(message);                           }
+	public String getMessage()           { return manager.getString(message);                }
 	
 	/**
 	 * A method used to return the message list assigned to the module.
@@ -79,7 +79,7 @@ public class RamModule extends Module implements Listener, Scheduler
 	 * @since 1.2
 	 */
 	@Override
-	public List<String> getMessageList() { return manager.getStringList(message);                       }
+	public List<String> getMessageList() { return manager.getStringList(message);            }
 	
 	/**
 	 * A method used to return whether a module is enabled
@@ -88,7 +88,7 @@ public class RamModule extends Module implements Listener, Scheduler
 	 * @since 1.2
 	 */
 	@Override
-	public boolean isEnabled()    { return manager.getBoolean(enabled);                                 }
+	public boolean isEnabled()           { return manager.getBoolean(enabled);               }
 	
 	/**
 	 * A method used to return the active handler list for a module.
@@ -96,7 +96,7 @@ public class RamModule extends Module implements Listener, Scheduler
 	 * @since 1.2
 	 */
 	@Override
-	public void removeListener()  { RamEvent.getHandlerList().unregister(this);                  }
+	public void removeListener()         { RamEvent.getHandlerList().unregister(this);       }
 	
 	/**
 	 * Returns the taskId for the task.
@@ -105,7 +105,7 @@ public class RamModule extends Module implements Listener, Scheduler
 	 * @since 1.2
 	 */
 	@Override
-	public int getTaskId() { return manager.getRegisteredList().indexOf(this); }
+	public int getTaskId()               { return manager.getRegisteredList().indexOf(this); }
 	
 	/**
 	 * Returns true if this task has been cancelled.
@@ -114,7 +114,7 @@ public class RamModule extends Module implements Listener, Scheduler
 	 * @since 1.2
 	 */
 	@Override
-	public boolean isCancelled() { return task == null || task.isCancelled(); }
+	public boolean isCancelled()         { return task == null || task.isCancelled();        }
 	
 	/**
 	 * Will attempt to cancel this task.
@@ -122,5 +122,5 @@ public class RamModule extends Module implements Listener, Scheduler
 	 * @since 1.2
 	 */
 	@Override
-	public void cancel() { task.cancel(); }
+	public void cancel()                 { task.cancel();                                    }
 }
