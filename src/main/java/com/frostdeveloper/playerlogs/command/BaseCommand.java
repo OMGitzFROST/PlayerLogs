@@ -2,12 +2,13 @@ package com.frostdeveloper.playerlogs.command;
 
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlogs.PlayerLogs;
-import com.frostdeveloper.playerlogs.definition.Config;
 import com.frostdeveloper.playerlogs.definition.Permission;
 import com.frostdeveloper.playerlogs.manager.ConfigManager;
 import com.frostdeveloper.playerlogs.manager.LocaleManager;
 import com.frostdeveloper.playerlogs.manager.ModuleManager;
+import com.frostdeveloper.playerlogs.model.Module;
 import com.frostdeveloper.playerlogs.service.UpdateService;
+import com.frostdeveloper.playerlogs.util.Util;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -52,9 +53,9 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args)
 	{
-		if (command.getAliases().contains(label)) {
+		if (command.getAliases().contains(label) || command.getName().equalsIgnoreCase("playerlog")) {
 			
-			if (args.length != 1) {
+			if (args.length == 0) {
 				executeInvalid(sender, command, label);
 				return true;
 			}
@@ -62,21 +63,21 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 			switch (args[0]) {
 				case "update":
 					executeUpdate(sender);
-					break;
+					return true;
 				case "reload":
 					executeReload(sender);
-					break;
+					return true;
 				case "help":
 				case "purge":
 					executeUnsupported(sender);
-					break;
+					return true;
 				case "modules":
 				case "module":
-					executeModule(sender);
-					break;
+					executeModule(sender, command, label, args);
+					return true;
 				default:
 					executeInvalid(sender, command, label);
-					break;
+					return true;
 			}
 		}
 		return true;
@@ -111,14 +112,15 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	private void executeReload(CommandSender sender)
 	{
 		if (Permission.isPermitted(sender, Permission.CMD_RELOAD)) {
-			plugin.initializeAudit();
-			locale.initializeAudit();
-			module.initializeAudit();
-			
 			// CONFIGURATION RELOAD
 			config.reload();
 			locale.reload();
 			module.reload();
+			
+			// VERIFY MANAGERS
+			plugin.initializeAudit();
+			locale.initializeAudit();
+			module.initializeAudit();
 			
 			if (sender instanceof Player) {
 				sendMessage(sender, "plugin.reload.success");
@@ -133,10 +135,57 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	 * @param sender Entity that executed the command.
 	 * @since 1.2
 	 */
-	public void executeModule(@NotNull CommandSender sender)
+	private void executeModule(@NotNull CommandSender sender, Command cmd, String label,  String[] args)
 	{
 		if (Permission.isPermitted(sender, Permission.CMD_MODULE)) {
-			sender.sendMessage("Registered Modules: (" + module.getCount(module.getRegisteredList()) + ") " + Arrays.toString(module.toList()));
+			if (args.length == 1) {
+				sendMessage(sender, "module.list.registered",module.getCount(module.getRegisteredList()), Arrays.toString(module.toList()));
+			}
+			
+			if (args.length == 2) {
+				if (args[1].equalsIgnoreCase("info")) {
+					String usage = api.format("/{0} module info <identifier>", label);
+					executeInvalid(sender, label, usage);
+				}
+				else {
+					executeInvalid(sender, cmd, label);
+				}
+			}
+			
+			if (args.length == 3) {
+				if (args[1].equalsIgnoreCase("info")) {
+					if (module.getModuleByPartial(args[2]) != null) {
+						Module target = module.getModuleByPartial(args[2]);
+						
+						String header;
+						String body;
+						String footer = null;
+						
+						if (sender instanceof Player) {
+							header = Util.buildHeader(24, '-');
+							body   = Util.buildBody(header.length() + 6, api.format("{0}", target.getName()), '+');
+							footer = Util.buildHeader(24, '_');
+						}
+						else {
+							header = Util.buildHeader(24, '-');
+							body   = Util.buildBody(header.length(), api.format("{0}", target.getName()), '+');
+						}
+						
+						sendMessage(sender, header);
+						sendMessage(sender, body);
+						sendMessage(sender, header);
+						
+						for (String current : target.getInformation()) {
+							sendMessage(sender, current);
+						}
+					}
+					String usage = api.format("/{0} module info <identifier>", label);
+					executeInvalid(sender, label, usage);
+				}
+				else {
+					executeInvalid(sender, cmd, label);
+				}
+			}
 		}
 	}
 	
@@ -179,6 +228,24 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 		}
 	}
 	
+	/**
+	 * A method used to notify the CommandSender if a command is invalid with a custom usage
+	 *
+	 * @param sender The entity that executed the command
+	 * @param usage Custom usage
+	 * @param label The label used to execute command
+	 * @since 1.2
+	 */
+	private void executeInvalid(CommandSender sender, String label, String usage)
+	{
+		if (sender instanceof Player) {
+			sendMessage(sender, "plugin.command.invalid", api.format(usage, label));
+		}
+		else {
+			plugin.log("plugin.command.invalid", api.format(usage, label));
+		}
+	}
+	
 	/*
 	 * COMMAND SENDER MESSAGING
 	 */
@@ -193,11 +260,7 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	 */
 	private void sendMessage(@NotNull CommandSender sender, String message, Object... param)
 	{
-		String prefix = config.getString(Config.PREFIX);
-		boolean usePrefix = config.getBoolean(Config.USE_PREFIX);
-		String msg = usePrefix ? prefix + " " +  locale.getMessage(message) : locale.getMessage(message);
-		
-		sender.sendMessage(api.format(msg, param));
+		sender.sendMessage(api.format(Util.getPrefix() + Util.format(locale.getMessage(message)), param));
 	}
 	
 	/*
@@ -218,13 +281,34 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	@Override
 	public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args)
 	{
-		if (command.getAliases().contains(alias)) {
+		if (command.getAliases().contains(alias) || command.getName().equalsIgnoreCase("playerlog")) {
+			// /playerlog <you are here>
 			if (args.length == 1) {
 				List<String> options = new ArrayList<>();
 				api.addToList(options,"reload", Permission.isPermitted(sender, Permission.CMD_RELOAD));
 				api.addToList(options,"update", Permission.isPermitted(sender, Permission.CMD_UPDATE));
 				api.addToList(options, "module", Permission.isPermitted(sender, Permission.CMD_MODULE));
 				return options;
+			}
+			
+			// /playerlog arg1 <you are here>
+			if (args.length == 2) {
+				if (args[0].equalsIgnoreCase("module")) {
+					List<String> options = new ArrayList<>();
+					api.addToList(options, "info", Permission.isPermitted(sender, Permission.CMD_MODULE_INFO));
+					return options;
+				}
+			}
+			
+			// /playerlog arg1 arg2 <you are here>
+			if (args.length == 3) {
+				if (args[1].equalsIgnoreCase("info")) {
+					List<String> options = new ArrayList<>();
+					for (Module current : module.getMasterList()) {
+						api.addToList(options, current.getIdentifier(), true /* TODO: ADD NEW METHOD THAT DOES NOT REQUIRE CONDITION */);
+					}
+					return options;
+				}
 			}
 		}
 		return null;
