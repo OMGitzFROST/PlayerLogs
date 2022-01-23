@@ -2,6 +2,10 @@ package com.frostdeveloper.playerlogs.util;
 
 import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.definition.Config;
+import com.frostdeveloper.playerlogs.manager.ConfigManager;
+import com.frostdeveloper.playerlogs.manager.LocaleManager;
+import org.bukkit.ChatColor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,6 +26,7 @@ public class Util
 	// CLASS INSTANCES
 	private static final PlayerLogs plugin = PlayerLogs.getInstance();
 	private static final FrostAPI api = plugin.getFrostAPI();
+	private static final ConfigManager config = plugin.getConfigManager();
 	
 	/**
 	 * A method used to return a file object from a path. If the path contains a '/' char
@@ -103,5 +108,36 @@ public class Util
 			}
 		}
 		return "";
+	}
+	
+	/**
+	 * A method used to return this plugin's prefix format as defined in the configuration file.
+	 * If the prefix is disabled, this method will return an empty string, otherwise, the prefix.
+	 *
+	 * @return Plugin prefix
+	 * @since 1.2
+	 */
+	public static @NotNull String getPrefix()
+	{
+		String prefix = config.getString(Config.PREFIX);
+		boolean usePrefix = config.getBoolean(Config.USE_PREFIX);
+		
+		if (usePrefix) {
+			return format(prefix)  + ChatColor.RESET + " ";
+		}
+		return "";
+	}
+	
+	/**
+	 * A method used to add bukkit {@link ChatColor} to a message
+	 *
+	 * @param input Target input
+	 * @return An output with color codes translated
+	 * @since 1.2
+	 */
+	@Contract ("_ -> new")
+	public static @NotNull String format(@NotNull String input)
+	{
+		return ChatColor.translateAlternateColorCodes('&', input.replace("§", "&"));
 	}
 }
