@@ -80,7 +80,7 @@ public enum Permission
 	 *
 	 * @since 1.2
 	 */
-	public static void initVerification()
+	public static void initializeAudit()
 	{
 		boolean errorFound = false;
 		
