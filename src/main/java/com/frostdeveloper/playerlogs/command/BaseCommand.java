@@ -157,17 +157,13 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 					if (module.getModuleByPartial(args[2]) != null) {
 						Module target = module.getModuleByPartial(args[2]);
 						
-						String header;
+						String header = Util.buildHeader(24, '-');
 						String body;
-						String footer = null;
 						
 						if (sender instanceof Player) {
-							header = Util.buildHeader(24, '-');
 							body   = Util.buildBody(header.length() + 6, api.format("{0}", target.getName()), '+');
-							footer = Util.buildHeader(24, '_');
 						}
 						else {
-							header = Util.buildHeader(24, '-');
 							body   = Util.buildBody(header.length(), api.format("{0}", target.getName()), '+');
 						}
 						
@@ -178,9 +174,12 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 						for (String current : target.getInformation()) {
 							sendMessage(sender, current);
 						}
+						sendMessage(sender, header);
 					}
-					String usage = api.format("/{0} module info <identifier>", label);
-					executeInvalid(sender, label, usage);
+					else {
+						String usage = api.format("/{0} module info <identifier>", label);
+						executeInvalid(sender, label, usage);
+					}
 				}
 				else {
 					executeInvalid(sender, cmd, label);
