@@ -77,7 +77,7 @@ public class UpdateService implements Listener
 	{
 		Bukkit.getScheduler().runTaskLater(plugin, () -> {
 			attemptDownload();
-			plugin.debug(getClass(), getMessage());
+			initializeLogger();
 		}, 0);
 	}
 	
@@ -233,7 +233,7 @@ public class UpdateService implements Listener
 	 */
 	public String getMessage()
 	{
-		switch (this.result) {
+		switch (result) {
 			case DOWNLOADED:
 				return api.format(locale.getMessage("update.result.downloaded"), REMOTE_VERSION);
 			case CURRENT:
@@ -250,6 +250,28 @@ public class UpdateService implements Listener
 	}
 	
 	/**
+	 * A method used in conjunction the the {@link #initialize()} class to log the update status
+	 * that this updater returned;
+	 *
+	 * @since 1.2
+	 */
+	public void initializeLogger()
+	{
+		switch (result) {
+			case AVAILABLE:
+			case DOWNLOADED:
+				plugin.log(getMessage());
+			case ERROR:
+			case CURRENT:
+			case DISABLED:
+			case UNKNOWN:
+				plugin.debug(getMessage());
+			default:
+				plugin.debug(getMessage());
+		}
+	}
+	
+	/**
 	 * A method used to determine whether an update is required. It compares the remote version to the local version
 	 * to return its requested outcome.
 	 *
@@ -258,8 +280,8 @@ public class UpdateService implements Listener
 	 */
 	private boolean shouldUpdate()
 	{
-		double remote = Double.parseDouble(REMOTE_VERSION.replace("v", ""));
-		double local  = Double.parseDouble(plugin.getDescription().getVersion());
+		double remote = api.toDouble(REMOTE_VERSION.replace("v", ""));
+		double local  = api.toDouble(plugin.getDescription().getVersion());
 		return remote > local;
 	}
 	
@@ -269,7 +291,7 @@ public class UpdateService implements Listener
 	 * @return Update result.
 	 * @since 1.1
 	 */
-	public UpdateResult getResult() { return this.result; }
+	public UpdateResult getResult() { return result; }
 	
 	/**
 	 * A method  used to return the project repository identifier
