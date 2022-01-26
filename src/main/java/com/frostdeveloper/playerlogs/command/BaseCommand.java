@@ -31,11 +31,11 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 {
 	// CLASS INSTANCES
 	private final PlayerLogs plugin     = PlayerLogs.getInstance();
+	private final FrostAPI api          = plugin.getFrostAPI();
 	private final ConfigManager config  = plugin.getConfigManager();
 	private final ModuleManager module  = plugin.getModuleManager();
 	private final LocaleManager locale  = plugin.getLocaleManager();
 	private final UpdateService updater = plugin.getUpdateManager();
-	private final FrostAPI api          = plugin.getFrostAPI();
 	
 	/**
 	 * Executes the given command, returning its success.
@@ -55,11 +55,13 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	{
 		if (command.getAliases().contains(label) || command.getName().equalsIgnoreCase("playerlog")) {
 			
+			/* /<you are here> */
 			if (args.length == 0) {
 				executeInvalid(sender, command, label);
 				return true;
 			}
 			
+			/* /playerlogs <you are here> */
 			switch (args[0]) {
 				case "update":
 					executeUpdate(sender);
@@ -92,10 +94,14 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	private void executeUpdate(CommandSender sender)
 	{
 		if (Permission.isPermitted(sender, Permission.CMD_UPDATE)) {
-			updater.initialize();
+			updater.attemptDownload();
 			
 			if (sender instanceof Player) {
-				sender.sendMessage(updater.getMessage());
+				sendMessage(sender, updater.getMessage());
+				updater.initializeLogger();
+			}
+			else {
+				plugin.log(updater.getMessage());
 			}
 		}
 		else {
