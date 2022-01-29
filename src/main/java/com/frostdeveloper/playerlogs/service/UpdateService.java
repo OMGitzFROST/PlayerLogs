@@ -261,11 +261,7 @@ public class UpdateService implements Listener
 			case AVAILABLE:
 			case DOWNLOADED:
 				plugin.log(getMessage());
-			case ERROR:
-			case CURRENT:
-			case DISABLED:
-			case UNKNOWN:
-				plugin.debug(getMessage());
+				break;
 			default:
 				plugin.debug(getMessage());
 		}
