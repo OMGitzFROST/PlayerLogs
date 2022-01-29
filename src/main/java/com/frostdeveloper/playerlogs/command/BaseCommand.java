@@ -310,7 +310,7 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 				if (args[1].equalsIgnoreCase("info")) {
 					List<String> options = new ArrayList<>();
 					for (Module current : module.getMasterList()) {
-						api.addToList(options, current.getIdentifier(), true /* TODO: ADD NEW METHOD THAT DOES NOT REQUIRE CONDITION */);
+						api.addToList(options, current.getIdentifier(), true);
 					}
 					return options;
 				}
