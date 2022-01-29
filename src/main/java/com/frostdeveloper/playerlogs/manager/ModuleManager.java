@@ -121,17 +121,7 @@ public class ModuleManager extends Configuration implements Manager
 	 * @return All values housed in our registered list.
 	 * @since 1.2
 	 */
-	public ArrayList<Module> getRegisteredList()
-	{
-		if (registered.size() == 0) {
-			for (Module current : getMasterList()) {
-				if (current.isEnabled()) {
-					addToRegistry(current);
-				}
-			}
-		}
-		return registered;
-	}
+	public ArrayList<Module> getRegisteredList() { return registered; }
 	
 	/**
 	 * A method used to initialize our audit, the audit is tasked with verifying that all modules
@@ -161,10 +151,7 @@ public class ModuleManager extends Configuration implements Manager
 		for (Module module : getMasterList()) {
 			if (module.isEnabled() && !module.isRegistered()) {
 				addToRegistry(module);
-				
-				if (getRegisteredList().contains(module)) {
-					module.initialize();
-				}
+				module.initialize();
 			}
 			
 			for (OfflinePlayer current : Bukkit.getOfflinePlayers()) {
