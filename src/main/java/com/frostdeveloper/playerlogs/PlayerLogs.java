@@ -108,7 +108,7 @@ public class PlayerLogs extends JavaPlugin
 	 *
 	 * @return Developer mode
 	 */
-	public boolean isDeveloperMode() { return true;                                                                 }
+	public boolean isDeveloperMode() { return false;                                                         }
 	
 	/**
 	 * A method used to identify if we successfully hooked into PlaceholderAPI, this
