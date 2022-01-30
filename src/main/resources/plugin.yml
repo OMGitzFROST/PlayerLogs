@@ -1,32 +1,38 @@
 name: PlayerLogs
 version: '${project.version}'
-main: com.frostdeveloper.playerlog.PlayerLog
+main: com.frostdeveloper.playerlogs.PlayerLogs
 api-version: 1.17
 prefix: PL
 authors: [ OMGitzFROST ]
 description: A simple plugin used to log player activity
 website: https://www.frostdeveloper.com/project/playerlogs.html
+softdepend: [PlaceholderAPI]
 
 commands:
     playerlog:
-        aliases: [pl, plog, plogs, playerlogs]
+        aliases: [plog]
         description: Base command for this plugin.
-        usage: /{0} [reload | update | purge]
-        
+        usage: /{0} <args>
+
 permissions:
-    playerlog.*:
+    playerlogs.command.*:
         description: Grants access to all features in this plugin
         default: op
         children:
-            playerlog.update.notify: true
-            playerlog.command.update: true
-    playerlog.update.notify:
-        description: Enables update notification on server join.
-        default: false
-    playerlog.command.update:
+            playerlogs.command.update: true
+            playerlogs.command.reload: true
+            playerlogs.command.module: true
+            playerlogs.command.module.info: true
+    playerlogs.command.update:
         description: Grants access to the '/playerlog update' command.
         default: false
-    playerlog.command.reload:
+    playerlogs.command.reload:
         description: Grants access to the '/playerlog reload' command.
+        default: false
+    playerlogs.command.module:
+        description: Grants access to the '/playerlog module' command.
+        default: false
+    playerlogs.command.module.info:
+        description: Grants access to the '/player module info <module>' command.
         default: false
         

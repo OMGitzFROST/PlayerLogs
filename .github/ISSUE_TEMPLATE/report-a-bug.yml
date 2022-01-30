@@ -1,0 +1,60 @@
+name: Report bug
+title: "[BUG]: "
+description: Report a bug in PlayerLogs
+labels: ['bug: unconfirmed']
+assignees:
+    - OMGitzFROST
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for taking the time to report an bug! Fill out the form below to provide us with info to
+              help us fix your issue in future updates. Only use this if you're 100% sure you've found a bug and
+              can reproduce it. If you're looking for general help with our plugin, visit the Q&A forum in the
+              disscusions forum.
+              
+    -   type: dropdown
+        attributes:
+            label: Bug Type
+            description: What type of bug is this? Choose all that apply.
+            multiple: true
+            options:
+                - Compatibility issue
+                - Error in console
+                - Other unexpected behaviour
+        validations:
+            required: true
+            
+    -   type: input
+        attributes:
+            label: Error log (if applicable)
+            description: If you are reporting a console error, upload any relevant log excerpts to either https://paste.gg or https://gist.github.com, save and the paste the link in this box. If you included those files in the same paste as your startup log, paste the same link here.
+            placeholder: "Example: https://paste.gg/p/anonymous/109dd6a10a734a3aa430d5a351ea5210"
+            
+    -   type: textarea
+        attributes:
+            label: Bug description
+            description: Describe roughly what the bug is here.
+            placeholder: |
+                Example: "When running /nuke after putting everyone into adventure mode, there aren't any explosions..."
+        validations:
+            required: true
+            
+    -   type: textarea
+        attributes:
+            label: Steps to reproduce
+            description: Provide an example of how to trigger the bug.
+            placeholder: |
+                Example:
+                1. Have at least 3 people online
+                2. Run `/gma *` to put everyone into adventure mode
+                3. Run `/nuke`
+        validations:
+            required: false
+            
+    -   type: markdown
+        attributes:
+            value: |
+                In the text box below, you can attach any relevant screenshots, files and links to Timings/spark profiler reports.
+                You can also include a link to a heapdump if necessary, but please make sure you don't include any private player data in the heapdump.
+                If you suspect this issue is related to a prior issue/PR/commit, please mention it here.
