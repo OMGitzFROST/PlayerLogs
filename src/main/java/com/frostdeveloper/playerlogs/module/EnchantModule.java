@@ -45,6 +45,10 @@ public class EnchantModule extends Module implements Listener
 		
 		String defaultMessage = api.format("%player_name% enchanted a(n) %enchanted_item% for %enchantment_cost%");
 		
+		if (!manager.getUserDirectory(player).exists() && !manager.getUserDirectory(player).mkdirs()) {
+			throw new IllegalArgumentException("Failed to create directory for: " + player.getName());
+		}
+		
 		if (manager.isList(message)) {
 			printToFile(player, Placeholder.set(player, getMessageList()), Placeholder.set(player, defaultMessage));
 		}

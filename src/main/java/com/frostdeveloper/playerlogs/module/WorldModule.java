@@ -37,6 +37,10 @@ public class WorldModule extends Module implements Listener
 		Player player = event.getPlayer();
 		String defaultMessage = api.format("%player_name% changed worlds to %player_world%");
 		
+		if (!manager.getUserDirectory(player).exists() && !manager.getUserDirectory(player).mkdirs()) {
+			throw new IllegalArgumentException("Failed to create directory for: " + player.getName());
+		}
+		
 		if (manager.isList(message)) {
 			printToFile(player, Placeholder.set(player, getMessageList()), Placeholder.set(player, defaultMessage));
 		}

@@ -35,6 +35,10 @@ public class ChatModule extends Module implements Listener
 	{
 		Player player = event.getPlayer();
 		
+		if (!manager.getUserDirectory(player).exists() && !manager.getUserDirectory(player).mkdirs()) {
+			throw new IllegalArgumentException("Failed to create directory for: " + player.getName());
+		}
+		
 		if (manager.isList(message)) {
 			printToFile(player, Placeholder.set(player, getMessageList()), Placeholder.set(player, event.getMessage()));
 		}

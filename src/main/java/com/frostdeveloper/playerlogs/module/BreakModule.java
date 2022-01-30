@@ -42,6 +42,10 @@ public class BreakModule extends Module implements Listener
 		
 		String defaultMessage = api.format("%player_name% broke %block_type% at %block_location%");
 		
+		if (!manager.getUserDirectory(player).exists() && !manager.getUserDirectory(player).mkdirs()) {
+			throw new IllegalArgumentException("Failed to create directory for: " + player.getName());
+		}
+		
 		if (manager.isList(message)) {
 			printToFile(Placeholder.set(player, getMessageList()), Placeholder.set(player, defaultMessage));
 		}
