@@ -40,4 +40,14 @@ public class ConfigManager extends Configuration implements Manager
 			attemptUpdate();
 		}
 	}
+	
+	/**
+	 * A method used to apply any patch updates for newer versions of our plugin. If there are no patches that need
+	 * to be made for existing versions, this method will remain empty.
+	 *
+	 * @implNote Remember to empty method if no updates are needed for existing features.
+	 * @since 1.2
+	 */
+	@Override
+	public void applyPatch() {}
 }
