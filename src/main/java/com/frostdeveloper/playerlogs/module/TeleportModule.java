@@ -41,6 +41,7 @@ public class TeleportModule extends Module implements Listener
 		Placeholder.addCustom("%last_location%", event.getFrom().toVector());
 		Placeholder.addCustom("%player_location%", Objects.requireNonNull(event.getTo()).toVector());
 		
+		// DEFAULT MESSAGE
 		String defaultMessage = api.format("%player_name% teleported from (%last_location%) to (%player_location%)");
 		
 		if (!manager.getUserDirectory(player).exists() && !manager.getUserDirectory(player).mkdirs()) {
@@ -58,8 +59,7 @@ public class TeleportModule extends Module implements Listener
 				else {
 					printToFile(player, Placeholder.set(player, getMessage()), Placeholder.set(player, defaultMessage));
 				}
-			default:
-				// DO NOTHING
+				break;
 		}
 	}
 	
