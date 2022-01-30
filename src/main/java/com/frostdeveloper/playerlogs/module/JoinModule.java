@@ -38,7 +38,7 @@ public class JoinModule extends Module implements Listener
 	{
 		Player player = event.getPlayer();
 		
-		if (!manager.getUserDirectory(player).exists() && manager.getUserDirectory(player).mkdirs()) {
+		if (!manager.getUserDirectory(player).exists() && !manager.getUserDirectory(player).mkdirs()) {
 			throw new IllegalArgumentException("Failed to create directory for: " + player.getName());
 		}
 		

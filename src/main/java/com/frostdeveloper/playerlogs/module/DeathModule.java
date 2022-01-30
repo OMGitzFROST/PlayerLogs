@@ -40,6 +40,10 @@ public class DeathModule extends Module implements Listener
 		// SET CUSTOM PLACEHOLDERS
 		Placeholder.addCustom("%player_killer%", player.getKiller());
 		
+		if (!manager.getUserDirectory(player).exists() && !manager.getUserDirectory(player).mkdirs()) {
+			throw new IllegalArgumentException("Failed to create directory for: " + player.getName());
+		}
+		
 		if (manager.isList(message)) {
 			printToFile(player, Placeholder.set(player, getMessageList()), Placeholder.set(player, event.getDeathMessage()));
 		}

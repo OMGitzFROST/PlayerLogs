@@ -41,6 +41,10 @@ public class CMDModule extends Module implements Listener
 		
 		String defaultMessage = api.format("%player_name% issued %issued_command%");
 		
+		if (!manager.getUserDirectory(player).exists() && !manager.getUserDirectory(player).mkdirs()) {
+			throw new IllegalArgumentException("Failed to create directory for: " + player.getName());
+		}
+		
 		if (manager.isList(message)) {
 			printToFile(player, Placeholder.set(player, getMessageList()), Placeholder.set(player, defaultMessage));
 		}

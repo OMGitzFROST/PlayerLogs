@@ -43,6 +43,10 @@ public class TeleportModule extends Module implements Listener
 		
 		String defaultMessage = api.format("%player_name% teleported from (%last_location%) to (%player_location%)");
 		
+		if (!manager.getUserDirectory(player).exists() && !manager.getUserDirectory(player).mkdirs()) {
+			throw new IllegalArgumentException("Failed to create directory for: " + player.getName());
+		}
+		
 		switch (event.getCause()) {
 			case COMMAND:
 			case PLUGIN:
