@@ -172,10 +172,10 @@ public abstract class Module
 	{
 		File playerFile = getModuleFile(player);
 		manager.initializeCorrection();
-		api.createParent(playerFile);
 		
 		try {
 			if (manager.getBoolean(Config.MODULARIZE)) {
+				api.createParent(playerFile);
 				FileWriter writer = new FileWriter(playerFile, true);
 				PrintWriter printer = new PrintWriter(writer);
 				
@@ -206,10 +206,10 @@ public abstract class Module
 	{
 		File playerFile = getModuleFile(player);
 		manager.initializeCorrection();
-		api.createParent(playerFile);
 		
 		try {
 			if (manager.getBoolean(Config.MODULARIZE)) {
+				api.createParent(playerFile);
 				FileWriter writer = new FileWriter(playerFile, true);
 				PrintWriter printer = new PrintWriter(writer);
 				
