@@ -47,6 +47,50 @@ public class ModuleManager extends Configuration implements Manager
 	 */
 	public ModuleManager(@NotNull String target, boolean reload) { super(target, reload); }
 	
+	@Override
+	public void applyPatch()
+	{
+		File oldLogDirectory = Util.toFile("player-logs");
+		
+		// RENAME player-logs TO log-files
+		if (oldLogDirectory.exists()) {
+			api.renameIndex(oldLogDirectory, getLogDirectory().getName());
+		}
+		
+		// RENAME activity.log TO global.log
+		File activityLog     = Util.toFile(getLogDirectory(), "activity.log");
+		if (activityLog.exists()) {
+			api.renameIndex(activityLog, "global.log");
+		}
+		
+		// RENAME MODULE FILES FROM -activity TO -module AND MOVE UN-SUPPORTED MODULES TO UNSUPPORTED DIRECTORY
+		for (OfflinePlayer offlinePlayer : Bukkit.getOfflinePlayers()) {
+			File playerDir;
+			
+			if (getBoolean(Config.USE_UUID)) {
+				playerDir = Util.toFile(getLogDirectory(), api.toString(offlinePlayer.getUniqueId()));
+			}
+			else {
+				playerDir = Util.toFile(getLogDirectory(), offlinePlayer.getName());
+			}
+			
+			if (playerDir.exists()) {
+				for (File currentModuleFile : Objects.requireNonNull(playerDir.listFiles())) {
+					String partialName     = currentModuleFile.getName().split("-")[0];
+					Module module          = getModuleByPartial(partialName);
+					
+					if (module != null) {
+						String moduleFileName  = module.getFullIdentifier() + ".log";
+						api.renameIndex(currentModuleFile, moduleFileName);
+					}
+					else {
+						api.relocateIndex(currentModuleFile, Util.toFile(playerDir, "unsupported/{0}", currentModuleFile.getName()));
+					}
+				}
+			}
+		}
+	}
+	
 	/**
 	 * A method used to at the start of the {@link PlayerLogs#onEnable()} method. This method should be used to
 	 * create a configuration file and potentially include patch updates.
@@ -66,6 +110,9 @@ public class ModuleManager extends Configuration implements Manager
 	 */
 	public void initialize(boolean announce)
 	{
+		// APPLY ANY PATCHES
+		applyPatch();
+		
 		// IF A CONFIG DOES NOT EXIST THIS METHOD WILL CREATE ONE FOR US
 		saveDefaultConfig();
 		
@@ -210,9 +257,6 @@ public class ModuleManager extends Configuration implements Manager
 		
 		// ITERATE THROUGH ALL PLAYER AND CORRECT THE DIRECTORIES
 		for (OfflinePlayer current : Bukkit.getOfflinePlayers()) {
-			Validate.notNull(current.getUniqueId());
-			Validate.notNull(current.getName());
-			
 			File uuidDir    = Util.toFile(getLogDirectory(), api.toString(current.getUniqueId()));
 			File playerDir  = Util.toFile(getLogDirectory(), current.getName());
 			
