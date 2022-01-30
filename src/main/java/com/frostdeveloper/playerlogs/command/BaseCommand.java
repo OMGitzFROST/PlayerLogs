@@ -85,6 +85,10 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 		return true;
 	}
 	
+	/*
+	 * COMMAND TASKS
+	 */
+	
 	/**
 	 * A method used to execute our update task.
 	 *
@@ -105,7 +109,7 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 			}
 		}
 		else {
-			sendMessage(sender, "plugin.command.denied");
+			executeNoAccess(sender);
 		}
 	}
 	
@@ -132,6 +136,9 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 				sendMessage(sender, "plugin.reload.success");
 			}
 			plugin.log("plugin.reload.success");
+		}
+		else {
+			executeNoAccess(sender);
 		}
 	}
 	
@@ -192,6 +199,9 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 				}
 			}
 		}
+		else {
+			executeNoAccess(sender);
+		}
 	}
 	
 	/*
@@ -251,6 +261,14 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 		}
 	}
 	
+	/**
+	 * A method used to send a sender a message when they are denied access to a command.
+	 *
+	 * @param sender The entity that executed the command
+	 * @since 1.2
+	 */
+	private void executeNoAccess(CommandSender sender) { sendMessage(sender, "plugin.command.denied"); }
+	
 	/*
 	 * COMMAND SENDER MESSAGING
 	 */
@@ -265,7 +283,12 @@ public class BaseCommand implements CommandExecutor, TabCompleter
 	 */
 	private void sendMessage(@NotNull CommandSender sender, String message, Object... param)
 	{
-		sender.sendMessage(api.format(Util.getPrefix() + Util.format(locale.getMessage(message)), param));
+		if (sender instanceof Player) {
+			sender.sendMessage(api.format(Util.getPrefix() + Util.format(locale.getMessage(message)), param));
+		}
+		else {
+			sender.sendMessage(api.format(true,Util.getPrefix() + Util.format(locale.getMessage(message)), param));
+		}
 	}
 	
 	/*
