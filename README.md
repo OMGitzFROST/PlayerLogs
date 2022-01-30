@@ -6,7 +6,7 @@
 <h4 align="center">Never be in the dark, see what your player's are up to</h4>
 
 <p align="center">
-  <a href="https://github.com/OMGitzFROST/PlayerLogs/blob/master/LICENSE">
+  <a href="https://github.com/OMGitzFROST/PlayerLogs/blob/master/LICENSE.txt">
     <img alt="GitHub" src="https://img.shields.io/github/license/OMGitzFROST/PlayerLogs?style=plastic">
   </a>
   <a href="https://github.com/OMGitzFROST/PlayerLogs/releases/latest">
