@@ -220,6 +220,7 @@ public class ModuleManager extends Configuration implements Manager
 				api.renameIndex(playerDir, uuidDir.getName());
 				changes++;
 			}
+			
 			if (!useUUID && uuidDir.exists()) {
 				api.renameIndex(uuidDir, playerDir.getName());
 				changes++;
