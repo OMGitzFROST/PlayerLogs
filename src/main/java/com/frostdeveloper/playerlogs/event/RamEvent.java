@@ -28,7 +28,7 @@ public class RamEvent extends Event
 	 */
 	public String getMessage()
 	{
-		String message = api.format("TOTAL/MAX: %server_ram_total% MB / %server_ram_max% MB| FREE/USED: %server_ram_free% MB| %server_ram_used% MB");
+		String message = api.format("TOTAL/MAX: %server_ram_total% MB / %server_ram_max% MB | FREE/USED: %server_ram_free% MB | %server_ram_used% MB");
 		return Placeholder.set(message);
 	}
 	
