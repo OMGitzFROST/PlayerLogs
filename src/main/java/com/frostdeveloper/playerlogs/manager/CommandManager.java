@@ -1,6 +1,7 @@
 package com.frostdeveloper.playerlogs.manager;
 
 import com.frostdeveloper.playerlogs.PlayerLogs;
+import com.frostdeveloper.playerlogs.model.Manager;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 
@@ -12,10 +13,19 @@ import java.util.Objects;
  * @author OMGitzFROST
  * @since 1.2
  */
-public class CommandManager
+public class CommandManager implements Manager
 {
 	// CLASS INSTANCES
 	private final PlayerLogs plugin = PlayerLogs.getInstance();
+	
+	/**
+	 * A method used to at the start of the {@link PlayerLogs#onEnable()} method. This method should be used to
+	 * create a configuration file and potentially include patch updates.
+	 *
+	 * @since 1.2
+	 */
+	@Override
+	public void initialize() {}
 	
 	/**
 	 * A method used to register our commands and initiate the defined class as
