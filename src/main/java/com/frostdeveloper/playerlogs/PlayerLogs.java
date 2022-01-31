@@ -4,10 +4,7 @@ import com.frostdeveloper.api.FrostAPI;
 import com.frostdeveloper.api.exception.FailedMethodException;
 import com.frostdeveloper.api.handler.Report;
 import com.frostdeveloper.playerlogs.command.BaseCommand;
-import com.frostdeveloper.playerlogs.manager.CommandManager;
-import com.frostdeveloper.playerlogs.manager.ConfigManager;
-import com.frostdeveloper.playerlogs.manager.LocaleManager;
-import com.frostdeveloper.playerlogs.manager.ModuleManager;
+import com.frostdeveloper.playerlogs.manager.*;
 import com.frostdeveloper.playerlogs.service.MetricsService;
 import com.frostdeveloper.playerlogs.service.UpdateService;
 import com.frostdeveloper.playerlogs.util.Util;
@@ -40,6 +37,7 @@ public class PlayerLogs extends JavaPlugin
 			api      = FrostAPI.getInstance();
 			getLogger().setFilter(new LogFilter());
 			
+			getPatchManager().initialize();
 			getLocaleManager().initialize();
 			getConfigManager().initialize();
 			getModuleManager().initialize();
@@ -101,6 +99,8 @@ public class PlayerLogs extends JavaPlugin
 		if (!getModuleManager().getFile().exists()) {
 			getModuleManager().initialize(false);
 		}
+		
+		getPatchManager().initialize();
 	}
 	
 	/**
@@ -304,8 +304,7 @@ public class PlayerLogs extends JavaPlugin
 	 * @return ModuleManager instance;
 	 * @since 1.1
 	 */
-	@Contract (" -> new")
-	public @NotNull ModuleManager getModuleManager()   { return new ModuleManager("modules.yml", true); }
+	public ModuleManager getModuleManager()   { return new ModuleManager("modules.yml", true); }
 
 	/**
 	 * A method used to return an instance of the ConfigManager class
@@ -313,8 +312,7 @@ public class PlayerLogs extends JavaPlugin
 	 * @return ConfigManager class
 	 * @since 1.0
 	 */
-	@Contract (" -> new")
-	public @NotNull ConfigManager getConfigManager() { return new ConfigManager("config.yml", true); }
+	public ConfigManager getConfigManager() { return new ConfigManager("config.yml", true); }
 
 	/**
 	 * A method used to return an instance of the LocaleManager class
@@ -322,8 +320,7 @@ public class PlayerLogs extends JavaPlugin
 	 * @return LocaleManager class
 	 * @since 1.0
 	 * */
-	@Contract (" -> new")
-	public @NotNull LocaleManager getLocaleManager()   { return new LocaleManager();         }
+	public LocaleManager getLocaleManager()   { return new LocaleManager();         }
 	
 	/**
 	 * A method used to return an instance of the CommandManager class
@@ -331,5 +328,13 @@ public class PlayerLogs extends JavaPlugin
 	 * @return CommandManager class
 	 * @since 1.2
 	 */
-	public @NotNull CommandManager getCommandManager() { return new CommandManager();        }
+	public CommandManager getCommandManager() { return new CommandManager();        }
+	
+	/**
+	 * A method used to return an instance of the PatchManager class
+	 *
+	 * @return PatchManager class
+	 * @since 1.2
+	 */
+	public PatchManager getPatchManager() { return new PatchManager(); }
 }
