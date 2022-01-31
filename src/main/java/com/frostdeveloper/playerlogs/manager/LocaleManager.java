@@ -43,16 +43,6 @@ public class LocaleManager implements Manager
 	}
 	
 	/**
-	 * A method used to apply any patch updates for newer versions of our plugin. If there are no patches that need
-	 * to be made for existing versions, this method will remain empty.
-	 *
-	 * @implNote Remember to empty method if no updates are needed for existing features.
-	 * @since 1.2
-	 */
-	@Override
-	public void applyPatch() {}
-	
-	/**
 	 * A method used to verify our an existing message file and make sure that all required properties exist
 	 * inside the message file, if the message file is missing default keys, this method will automatically add them.
 	 * If keys that are no longer supported exist, this method will remove them.
